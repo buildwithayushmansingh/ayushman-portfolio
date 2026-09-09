@@ -1,12 +1,12 @@
 @media (max-width:880px){
   .nav-links{
-    position:fixed;top:64px;left:0;right:0;
+    position:fixed;bottom:64px;left:0;right:0;top:auto;
     background:var(--bg-alt);
     flex-direction:column;
-    padding:20px 32px 30px;
+    padding:20px 32px 24px;
     gap:22px;
-    border-bottom:1px solid var(--border);
-    transform:translateY(-130%);
+    border-top:1px solid var(--border);
+    transform:translateY(130%);
     transition:transform 0.3s ease;
   }
   .nav-links.open{transform:translateY(0);}
@@ -17,9 +17,48 @@
   .hero-stats{grid-template-columns:repeat(2,auto);row-gap:28px;}
 
   .about-grid{grid-template-columns:1fr;}
-  .skills-grid{grid-template-columns:1fr;}
-  .project{grid-template-columns:1fr;gap:14px;}
-  .cert-grid{grid-template-columns:1fr;}
+
+  /* certificate showcase: image stacks above info, thumbnails wrap to 2 columns */
+  .cert-featured{grid-template-columns:1fr;gap:24px;padding:22px;}
+  .cert-thumb-row{grid-template-columns:repeat(2,1fr);}
+
+  /* dev symbols / code fragments are decorative — drop them on small screens */
+  .dev-symbols,.code-fragments{display:none;}
+
+  /* circuit diagram + orbit core collapse to a simple stacked list on mobile */
+  .circuit-grid::before{display:none;}
+  .circuit-row{grid-template-columns:1fr;min-height:0;margin-bottom:16px;}
+  .circuit-node-wrap{display:none;}
+  .circuit-slot:first-child .circuit-card,
+  .circuit-slot:last-child .circuit-card{margin:0;}
+  .circuit-slot:first-child .circuit-card::after,
+  .circuit-slot:last-child .circuit-card::before{display:none;}
+  .circuit-grid .orbit-core{
+    position:static;
+    transform:none;
+    margin:0 auto 28px;
+  }
+  .circuit-grid .orbit-ring{display:none;}
+
+  /* projects: orbital layout becomes a simple stacked list */
+  .orbit-wrap{min-height:0;}
+  .orbit-lines{display:none;}
+  .orbit-core-lg{
+    position:static;
+    transform:none;
+    margin:0 auto 28px;
+    width:180px;height:180px;
+  }
+  .orbit-core-lg .orbit-ring{display:none;}
+  .orbit-card{
+    position:static;
+    width:100%;
+    margin-bottom:16px;
+  }
 
   section{padding:88px 22px;}
+}
+
+@media (max-width:420px){
+  .nav-cta{display:none;}
 }
