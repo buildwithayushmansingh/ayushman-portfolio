@@ -56,15 +56,20 @@
   <span class="cursor-label" id="cursorLabel"></span>
 </div>
 
-<nav class="nav" id="nav">
+<!-- command palette (Ctrl+K / Cmd+K) -->
+<div class="cmdk-overlay" id="cmdkOverlay" role="dialog" aria-modal="true" aria-label="Command palette" hidden>
+  <div class="cmdk-panel">
+    <div class="cmdk-input-row">
+      <span class="cmdk-icon">🔍</span>
+      <input type="text" id="cmdkInput" class="cmdk-input" placeholder="What do you want to do?" autocomplete="off" spellcheck="false">
+      <span class="cmdk-esc">ESC</span>
+    </div>
+    <ul class="cmdk-list" id="cmdkList"></ul>
+  </div>
+</div>
+
+<header class="top-bar">
   <div class="nav-mark"><span class="dot"></span>Ayushman Singh</div>
-  <ul class="nav-links" id="navLinks">
-    <li><a href="#about">About</a></li>
-    <li><a href="#skills">Skills</a></li>
-    <li><a href="#projects">Projects</a></li>
-    <li><a href="#certificates">Certificates</a></li>
-    <li><a href="#contact">Contact</a></li>
-  </ul>
   <div class="nav-right">
     <div class="profile-menu" id="profileMenu">
       <button class="profile-avatar" id="profileAvatarBtn" aria-haspopup="true" aria-expanded="false" aria-label="Open profile menu">AS</button>
@@ -98,8 +103,22 @@
         </div>
       </div>
     </div>
+    <button class="cmdk-trigger" id="cmdkTrigger" data-cursor-text="Search" aria-label="Open command palette">
+      <span>⌘K</span>
+    </button>
     <a href="mailto:ayushmansinghrajput3019@gmail.com" class="nav-cta" data-cursor-text="Email">Say hello</a>
   </div>
+</header>
+
+<nav class="nav" id="nav">
+  <ul class="nav-links" id="navLinks">
+    <li><a href="#about">About</a></li>
+    <li><a href="#skills">Skills</a></li>
+    <li><a href="#projects">Projects</a></li>
+    <li><a href="#certificates">Certificates</a></li>
+    <li><a href="#terminal">Terminal</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
   <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
   </button>
@@ -465,6 +484,29 @@
             <span>NEXUS AI Quiz</span>
           </button>
         </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="terminal">
+  <div class="wrap">
+    <div class="section-head reveal-on-scroll">
+      <span class="eyebrow">Terminal</span>
+      <h2>Talk to the portfolio</h2>
+      <p>Type <code>help</code> to see what it can do.</p>
+    </div>
+    <div class="term-window reveal-on-scroll">
+      <div class="term-titlebar">
+        <span class="term-dot red"></span><span class="term-dot yellow"></span><span class="term-dot green"></span>
+        <span class="term-title">ayushman@portfolio — bash</span>
+      </div>
+      <div class="term-body" id="termBody">
+        <div class="term-line">Welcome. Type <span class="term-cmd-hint">help</span> to get started.</div>
+      </div>
+      <div class="term-input-row">
+        <span class="term-prompt">ayushman@dev:~$</span>
+        <input type="text" id="termInput" class="term-input" autocomplete="off" spellcheck="false" aria-label="Terminal command input">
       </div>
     </div>
   </div>

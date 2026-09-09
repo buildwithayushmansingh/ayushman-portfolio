@@ -4,10 +4,9 @@ const nav = document.getElementById('nav');
 let mouseNearBottom = false;
 let scrollActive = false;
 let navHideTimer = null;
-let profileMenuOpen = false; // set by the profile-menu script below
 
 function updateNavVisibility() {
-  nav.classList.toggle('nav-visible', mouseNearBottom || scrollActive || profileMenuOpen);
+  nav.classList.toggle('nav-visible', mouseNearBottom || scrollActive);
 }
 
 window.addEventListener('mousemove', e => {
@@ -270,21 +269,17 @@ if (!isTouch) {
   const volumeSlider = document.getElementById('volumeSlider');
   if (!profileMenu || !avatarBtn) return;
 
-  // open/close dropdown — keep the bottom nav forced visible while it's open,
-  // otherwise it auto-hides the moment the cursor moves up toward the menu
+  // open/close dropdown — profile menu now lives in the always-visible top bar,
+  // so it no longer needs to force the bottom nav open
   avatarBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     const isOpen = profileMenu.classList.toggle('open');
     avatarBtn.setAttribute('aria-expanded', String(isOpen));
-    profileMenuOpen = isOpen;
-    updateNavVisibility();
   });
   document.addEventListener('click', (e) => {
     if (!profileMenu.contains(e.target)) {
       profileMenu.classList.remove('open');
       avatarBtn.setAttribute('aria-expanded', 'false');
-      profileMenuOpen = false;
-      updateNavVisibility();
     }
   });
 
@@ -358,4 +353,187 @@ if (!isTouch) {
     { rootMargin: '-45% 0px -45% 0px' }
   );
   sections.forEach(sec => spy.observe(sec));
+})();
+
+// ---------- Terminal section: interactive commands ----------
+(function () {
+  const termBody = document.getElementById('termBody');
+  const termInput = document.getElementById('termInput');
+  if (!termBody || !termInput) return;
+
+  const commands = {
+    help() {
+      return 'Available commands: help, whoami, about, skills, projects, certificates, contact, resume, github, open <section>, clear';
+    },
+    whoami() { return 'ayushman@developer'; },
+    about() {
+      return "Second-year B.Tech CS student at GNIOT, specializing in full stack development. Building with HTML, CSS, JavaScript, Python, Flask, MySQL and SQLite.";
+    },
+    skills() {
+      return 'HTML, CSS, JavaScript, Python, C, Flask, MySQL, SQLite, Git, GitHub, VS Code, Render';
+    },
+    projects() {
+      return 'WattWise — AI-based energy optimization\nPrivate Photo Vault — secure photo storage\nGenAI Project — practical Generative AI\nPersonal Portfolio — this website';
+    },
+    certificates() {
+      return 'Gold Certificate — Exploratory Data Analysis (FutureSkills Prime x NASSCOM)\nExploratory Data Analysis — Course Participation\nIntroduction to Generative AI (Google Cloud)\nNEXUS AI Quiz Ignite 2026 (Unstop)';
+    },
+    contact() {
+      return 'email: ayushmansinghrajput3019@gmail.com\ngithub: github.com/buildwithayushmansingh\nlinkedin: linkedin.com/in/ayushman-singh-147434367';
+    },
+    resume() {
+      window.open('https://www.linkedin.com/in/ayushman-singh-147434367/', '_blank', 'noopener');
+      return "Resume isn't uploaded yet — opening LinkedIn instead.";
+    },
+    github() {
+      window.open('https://github.com/buildwithayushmansingh', '_blank', 'noopener');
+      return 'Opening GitHub...';
+    },
+    clear() {
+      termBody.innerHTML = '';
+      return null;
+    }
+  };
+
+  function printLine(text, cls) {
+    const div = document.createElement('div');
+    div.className = 'term-line' + (cls ? ' ' + cls : '');
+    div.textContent = text;
+    termBody.appendChild(div);
+    termBody.scrollTop = termBody.scrollHeight;
+  }
+
+  function runCommand(raw) {
+    const trimmed = raw.trim();
+    if (!trimmed) return;
+    printLine(trimmed, 'term-cmd');
+
+    const parts = trimmed.split(/\s+/);
+    const cmd = parts[0].toLowerCase();
+
+    if (cmd === 'open' && parts[1]) {
+      const target = parts[1].toLowerCase();
+      const el = document.getElementById(target);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth' });
+        printLine('Scrolling to ' + target + '...');
+      } else {
+        printLine("No section named '" + target + "'", 'term-error');
+      }
+      return;
+    }
+
+    if (commands[cmd]) {
+      const out = commands[cmd]();
+      if (out) printLine(out);
+      return;
+    }
+
+    printLine("command not found: " + cmd + " — type 'help' for available commands", 'term-error');
+  }
+
+  termInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      runCommand(termInput.value);
+      termInput.value = '';
+    }
+  });
+
+  const termWindow = document.querySelector('.term-window');
+  if (termWindow) {
+    termWindow.addEventListener('click', () => termInput.focus());
+  }
+})();
+
+// ---------- Command palette (Ctrl+K / Cmd+K) ----------
+(function () {
+  const overlay = document.getElementById('cmdkOverlay');
+  const input = document.getElementById('cmdkInput');
+  const list = document.getElementById('cmdkList');
+  const trigger = document.getElementById('cmdkTrigger');
+  if (!overlay || !input || !list) return;
+
+  function scrollToId(id) {
+    const el = document.getElementById(id);
+    if (el) el.scrollIntoView({ behavior: 'smooth' });
+  }
+
+  function setTheme(theme) {
+    if (theme === 'cinematic') document.documentElement.removeAttribute('data-theme');
+    else document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('siteTheme', theme);
+    document.querySelectorAll('.theme-swatch').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.theme === theme);
+    });
+  }
+
+  const allCommands = [
+    { icon: '📁', label: 'View Projects', action: () => scrollToId('projects') },
+    { icon: '⚡', label: 'View Skills', action: () => scrollToId('skills') },
+    { icon: '🏆', label: 'View Certificates', action: () => scrollToId('certificates') },
+    { icon: '💻', label: 'Open Terminal', action: () => scrollToId('terminal') },
+    { icon: '✉️', label: 'Contact Ayushman', action: () => scrollToId('contact') },
+    { icon: '🔗', label: 'Open GitHub', action: () => window.open('https://github.com/buildwithayushmansingh', '_blank', 'noopener') },
+    { icon: '🔗', label: 'Open LinkedIn', action: () => window.open('https://www.linkedin.com/in/ayushman-singh-147434367/', '_blank', 'noopener') },
+    { icon: '🌙', label: 'Switch to Dark theme', action: () => setTheme('cinematic') },
+    { icon: '☀️', label: 'Switch to Light theme', action: () => setTheme('light') },
+    { icon: '▮', label: 'Switch to Terminal theme', action: () => setTheme('terminal') },
+  ];
+
+  let filtered = allCommands;
+  let activeIndex = 0;
+
+  function render() {
+    list.innerHTML = '';
+    if (!filtered.length) {
+      list.innerHTML = '<li class="cmdk-empty">No matching commands</li>';
+      return;
+    }
+    filtered.forEach((cmd, i) => {
+      const li = document.createElement('li');
+      li.className = 'cmdk-item' + (i === activeIndex ? ' active' : '');
+      li.innerHTML = `<span class="cmdk-item-icon">${cmd.icon}</span><span>${cmd.label}</span>`;
+      li.addEventListener('click', () => { cmd.action(); close(); });
+      li.addEventListener('mouseenter', () => { activeIndex = i; render(); });
+      list.appendChild(li);
+    });
+  }
+
+  function open() {
+    overlay.hidden = false;
+    input.value = '';
+    filtered = allCommands;
+    activeIndex = 0;
+    render();
+    setTimeout(() => input.focus(), 10);
+  }
+  function close() {
+    overlay.hidden = true;
+  }
+
+  input.addEventListener('input', () => {
+    const q = input.value.toLowerCase();
+    filtered = allCommands.filter(c => c.label.toLowerCase().includes(q));
+    activeIndex = 0;
+    render();
+  });
+
+  input.addEventListener('keydown', e => {
+    if (e.key === 'ArrowDown') { e.preventDefault(); activeIndex = Math.min(activeIndex + 1, filtered.length - 1); render(); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); activeIndex = Math.max(activeIndex - 1, 0); render(); }
+    else if (e.key === 'Enter') { e.preventDefault(); if (filtered[activeIndex]) { filtered[activeIndex].action(); close(); } }
+    else if (e.key === 'Escape') { close(); }
+  });
+
+  overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
+
+  document.addEventListener('keydown', e => {
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+      e.preventDefault();
+      overlay.hidden ? open() : close();
+    }
+    if (e.key === 'Escape' && !overlay.hidden) close();
+  });
+
+  if (trigger) trigger.addEventListener('click', open);
 })();
