@@ -355,15 +355,31 @@ if (!isTouch) {
   sections.forEach(sec => spy.observe(sec));
 })();
 
-// ---------- Terminal section: interactive commands ----------
+// ---------- Terminal overlay: opens with Ctrl+K / Cmd+K, runs real commands ----------
 (function () {
+  const overlay = document.getElementById('termOverlay');
   const termBody = document.getElementById('termBody');
   const termInput = document.getElementById('termInput');
-  if (!termBody || !termInput) return;
+  const trigger = document.getElementById('cmdkTrigger');
+  const escLabel = document.querySelector('.term-esc');
+  if (!overlay || !termBody || !termInput) return;
+
+  function setTheme(theme) {
+    if (theme === 'dark' || theme === 'cinematic') {
+      document.documentElement.removeAttribute('data-theme');
+      theme = 'cinematic';
+    } else {
+      document.documentElement.setAttribute('data-theme', theme);
+    }
+    localStorage.setItem('siteTheme', theme);
+    document.querySelectorAll('.theme-swatch').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.theme === theme);
+    });
+  }
 
   const commands = {
     help() {
-      return 'Available commands: help, whoami, about, skills, projects, certificates, contact, resume, github, open <section>, clear';
+      return 'Available commands: help, whoami, about, skills, projects, certificates, contact, resume, github, linkedin, theme <dark|light|terminal>, open <section>, clear';
     },
     whoami() { return 'ayushman@developer'; },
     about() {
@@ -388,6 +404,10 @@ if (!isTouch) {
     github() {
       window.open('https://github.com/buildwithayushmansingh', '_blank', 'noopener');
       return 'Opening GitHub...';
+    },
+    linkedin() {
+      window.open('https://www.linkedin.com/in/ayushman-singh-147434367/', '_blank', 'noopener');
+      return 'Opening LinkedIn...';
     },
     clear() {
       termBody.innerHTML = '';
@@ -415,10 +435,21 @@ if (!isTouch) {
       const target = parts[1].toLowerCase();
       const el = document.getElementById(target);
       if (el) {
-        el.scrollIntoView({ behavior: 'smooth' });
         printLine('Scrolling to ' + target + '...');
+        setTimeout(() => { close(); el.scrollIntoView({ behavior: 'smooth' }); }, 400);
       } else {
         printLine("No section named '" + target + "'", 'term-error');
+      }
+      return;
+    }
+
+    if (cmd === 'theme' && parts[1]) {
+      const target = parts[1].toLowerCase();
+      if (['dark', 'cinematic', 'light', 'terminal'].includes(target)) {
+        setTheme(target);
+        printLine('Theme set to ' + target + '.');
+      } else {
+        printLine("Unknown theme '" + target + "' — try dark, light or terminal", 'term-error');
       }
       return;
     }
@@ -432,10 +463,20 @@ if (!isTouch) {
     printLine("command not found: " + cmd + " — type 'help' for available commands", 'term-error');
   }
 
+  function open() {
+    overlay.hidden = false;
+    setTimeout(() => termInput.focus(), 10);
+  }
+  function close() {
+    overlay.hidden = true;
+  }
+
   termInput.addEventListener('keydown', e => {
     if (e.key === 'Enter') {
       runCommand(termInput.value);
       termInput.value = '';
+    } else if (e.key === 'Escape') {
+      close();
     }
   });
 
@@ -443,89 +484,9 @@ if (!isTouch) {
   if (termWindow) {
     termWindow.addEventListener('click', () => termInput.focus());
   }
-})();
-
-// ---------- Command palette (Ctrl+K / Cmd+K) ----------
-(function () {
-  const overlay = document.getElementById('cmdkOverlay');
-  const input = document.getElementById('cmdkInput');
-  const list = document.getElementById('cmdkList');
-  const trigger = document.getElementById('cmdkTrigger');
-  if (!overlay || !input || !list) return;
-
-  function scrollToId(id) {
-    const el = document.getElementById(id);
-    if (el) el.scrollIntoView({ behavior: 'smooth' });
-  }
-
-  function setTheme(theme) {
-    if (theme === 'cinematic') document.documentElement.removeAttribute('data-theme');
-    else document.documentElement.setAttribute('data-theme', theme);
-    localStorage.setItem('siteTheme', theme);
-    document.querySelectorAll('.theme-swatch').forEach(btn => {
-      btn.classList.toggle('active', btn.dataset.theme === theme);
-    });
-  }
-
-  const allCommands = [
-    { icon: '📁', label: 'View Projects', action: () => scrollToId('projects') },
-    { icon: '⚡', label: 'View Skills', action: () => scrollToId('skills') },
-    { icon: '🏆', label: 'View Certificates', action: () => scrollToId('certificates') },
-    { icon: '💻', label: 'Open Terminal', action: () => scrollToId('terminal') },
-    { icon: '✉️', label: 'Contact Ayushman', action: () => scrollToId('contact') },
-    { icon: '🔗', label: 'Open GitHub', action: () => window.open('https://github.com/buildwithayushmansingh', '_blank', 'noopener') },
-    { icon: '🔗', label: 'Open LinkedIn', action: () => window.open('https://www.linkedin.com/in/ayushman-singh-147434367/', '_blank', 'noopener') },
-    { icon: '🌙', label: 'Switch to Dark theme', action: () => setTheme('cinematic') },
-    { icon: '☀️', label: 'Switch to Light theme', action: () => setTheme('light') },
-    { icon: '▮', label: 'Switch to Terminal theme', action: () => setTheme('terminal') },
-  ];
-
-  let filtered = allCommands;
-  let activeIndex = 0;
-
-  function render() {
-    list.innerHTML = '';
-    if (!filtered.length) {
-      list.innerHTML = '<li class="cmdk-empty">No matching commands</li>';
-      return;
-    }
-    filtered.forEach((cmd, i) => {
-      const li = document.createElement('li');
-      li.className = 'cmdk-item' + (i === activeIndex ? ' active' : '');
-      li.innerHTML = `<span class="cmdk-item-icon">${cmd.icon}</span><span>${cmd.label}</span>`;
-      li.addEventListener('click', () => { cmd.action(); close(); });
-      li.addEventListener('mouseenter', () => { activeIndex = i; render(); });
-      list.appendChild(li);
-    });
-  }
-
-  function open() {
-    overlay.hidden = false;
-    input.value = '';
-    filtered = allCommands;
-    activeIndex = 0;
-    render();
-    setTimeout(() => input.focus(), 10);
-  }
-  function close() {
-    overlay.hidden = true;
-  }
-
-  input.addEventListener('input', () => {
-    const q = input.value.toLowerCase();
-    filtered = allCommands.filter(c => c.label.toLowerCase().includes(q));
-    activeIndex = 0;
-    render();
-  });
-
-  input.addEventListener('keydown', e => {
-    if (e.key === 'ArrowDown') { e.preventDefault(); activeIndex = Math.min(activeIndex + 1, filtered.length - 1); render(); }
-    else if (e.key === 'ArrowUp') { e.preventDefault(); activeIndex = Math.max(activeIndex - 1, 0); render(); }
-    else if (e.key === 'Enter') { e.preventDefault(); if (filtered[activeIndex]) { filtered[activeIndex].action(); close(); } }
-    else if (e.key === 'Escape') { close(); }
-  });
 
   overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
+  if (escLabel) escLabel.addEventListener('click', close);
 
   document.addEventListener('keydown', e => {
     if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {

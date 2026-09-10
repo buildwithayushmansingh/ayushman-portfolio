@@ -1,0 +1,41 @@
+<header class="top-bar">
+  <div class="nav-mark"><span class="dot"></span>Ayushman Singh</div>
+  <div class="nav-right">
+    <div class="profile-menu" id="profileMenu">
+      <button class="profile-avatar" id="profileAvatarBtn" aria-haspopup="true" aria-expanded="false" aria-label="Open profile menu">AS</button>
+      <div class="profile-dropdown" id="profileDropdown">
+        <div class="profile-dropdown-header">My Profile</div>
+
+        <div class="profile-section">
+          <span class="profile-section-label">Theme</span>
+          <div class="theme-options">
+            <button type="button" class="theme-swatch" data-theme="cinematic" aria-label="Dark theme">
+              <span class="swatch-dot swatch-cinematic"></span>Dark
+            </button>
+            <button type="button" class="theme-swatch" data-theme="light" aria-label="Light theme">
+              <span class="swatch-dot swatch-light"></span>Light
+            </button>
+            <button type="button" class="theme-swatch" data-theme="terminal" aria-label="Terminal theme">
+              <span class="swatch-dot swatch-terminal"></span>Terminal
+            </button>
+          </div>
+        </div>
+
+        <div class="profile-section">
+          <span class="profile-section-label">Sound</span>
+          <div class="sound-row">
+            <button class="sound-toggle" id="soundToggle" aria-pressed="false" aria-label="Toggle interface sound">
+              <svg class="icon-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/><path d="M19 6a9 9 0 0 1 0 12"/></svg>
+              <svg class="icon-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9v6h4l5 4V5L8 9H4z"/><line x1="17" y1="9" x2="22" y2="14"/><line x1="22" y1="9" x2="17" y2="14"/></svg>
+            </button>
+            <input type="range" id="volumeSlider" class="volume-slider" min="0" max="100" value="60" aria-label="Volume">
+          </div>
+        </div>
+      </div>
+    </div>
+    <button class="cmdk-trigger" id="cmdkTrigger" data-cursor-text="Terminal" aria-label="Open terminal">
+      <span>⌘K</span>
+    </button>
+    <a href="mailto:ayushmansinghrajput3019@gmail.com" class="nav-cta" data-cursor-text="Email">Say hello</a>
+  </div>
+</header>

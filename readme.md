@@ -1,52 +1,82 @@
-# Ayushman Singh — Portfolio
+# Ayushman Singh — Portfolio (Flask)
 
-Personal developer portfolio built with plain HTML, CSS and JavaScript — no framework, no build step.
+Personal developer portfolio, served with Flask so each section lives in its
+own template file instead of one giant HTML file.
 
-## Live sections
-
-- Hero — intro, photo, quick stats
-- About — background and current focus
-- Skills — frontend, backend, database, AI & data, tools, UI/UX
-- Projects — WattWise, Private Photo Vault, GenAI Project, Personal Portfolio
-- Certificates & recognition
-- Contact
+The page is still a **single page** — same smooth-scroll navigation, same
+look and behaviour as before. Only the code organisation changed.
 
 ## Folder structure
 
 ```
-ayushman-portfolio/
-├── index.html
-├── css/
-│   ├── style.css
-│   └── responsive.css
-├── js/
-│   └── script.js
-├── assets/
+flask-portfolio/
+├── app.py                     # Flask app — one route, renders index.html
+├── requirements.txt
+├── templates/
+│   ├── index.html             # shell that includes every partial below
+│   └── partials/
+│       ├── background.html    # site-wide animated background layer
+│       ├── cursor.html        # custom cursor
+│       ├── cmdk.html          # command palette (Ctrl/Cmd+K)
+│       ├── topbar.html        # logo, profile menu, "Say hello"
+│       ├── bottomnav.html     # section links (About/Skills/…)
+│       ├── hero.html
+│       ├── about.html
+│       ├── skills.html
+│       ├── projects.html
+│       ├── certificates.html
+│       ├── terminal.html
+│       └── contact.html
+│       └── footer.html
+├── static/
+│   ├── css/
+│   │   ├── style.css
+│   │   └── responsive.css
+│   ├── js/
+│   │   └── script.js
 │   └── images/
-│       └── profile.jpg
-└── README.md
+│       ├── profile.jpg
+│       └── certificates/
+│           ├── gold-certificate.png
+│           ├── course-completion-certificate.png
+│           ├── google-certificate.png
+│           └── nexus-participation.jpg
 ```
+
+Flask's convention: templates (`.html` files Flask renders) live in
+`templates/`, and files served as-is (CSS, JS, images) live in `static/`.
+That's why the CSS/JS/image links in the partials use
+`{{ url_for('static', filename='...') }}` instead of plain relative paths.
 
 ## Run it locally
 
-Just open `index.html` in a browser. For live-reload while editing, use the
-"Live Server" extension in VS Code and click "Go Live".
+```bash
+python -m venv venv
+source venv/bin/activate        # Windows: venv\Scripts\activate
+pip install -r requirements.txt
+python app.py
+```
 
-## Deploy it for free
-
-**GitHub Pages**
-1. Push this folder to a GitHub repo.
-2. Repo → Settings → Pages → set source to the `main` branch, root folder.
-3. Your site goes live at `https://<username>.github.io/<repo-name>/`.
-
-**Netlify / Vercel**
-1. Drag and drop this folder into Netlify's dashboard, or import the repo.
-2. It deploys automatically — no build command needed.
+Then open **http://127.0.0.1:5000** in your browser.
 
 ## Editing
 
-- Text/content → `index.html`
-- Colors/layout → `css/style.css` (colors are CSS variables at the top — edit `:root` to re-theme)
-- Mobile layout → `css/responsive.css`
-- Interactivity (nav toggle, count-up numbers) → `js/script.js`
-- Photo → replace `assets/images/profile.jpg` with a new image of the same name
+- Want to change a section's content? Open its file directly —
+  `templates/partials/skills.html`, `templates/partials/projects.html`,
+  etc. — instead of hunting through one long file.
+- Adding a brand-new section: create `templates/partials/your-section.html`,
+  then add `{% include 'partials/your-section.html' %}` in
+  `templates/index.html` wherever you want it to appear.
+- Colors/layout → `static/css/style.css` (all colors are CSS variables at
+  the top — including the 3-theme system, unchanged from before).
+- Interactivity (cursor, sound, terminal, command palette, themes) →
+  `static/js/script.js`.
+- Certificate/profile images → replace the files in `static/images/` with
+  the same filenames.
+
+## Deploying
+
+Flask apps need a server that can run Python (unlike the old static-file
+version, this can't go on GitHub Pages). Free options: **Render**,
+**Railway**, or **PythonAnywhere**. All of them detect `requirements.txt`
+and `app.py` automatically — just point them at the repo.

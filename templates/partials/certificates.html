@@ -1,0 +1,69 @@
+<section id="certificates">
+  <div class="wrap">
+    <div class="section-head reveal-on-scroll">
+      <span class="eyebrow">Certificates &amp; recognition</span>
+      <h2>Learning, verified</h2>
+    </div>
+
+    <div class="cert-showcase reveal-on-scroll">
+      <div class="cert-featured" id="certFeatured">
+        <div class="cert-featured-image">
+          <img id="certFeaturedImg" src="{{ url_for('static', filename='images/certificates/gold-certificate.png') }}" alt="Gold Certificate — Exploratory Data Analysis">
+          <span class="cert-verified-badge">✓ Verified</span>
+        </div>
+        <div class="cert-featured-info">
+          <span class="cert-eyebrow-small">// Certificate details</span>
+          <h3 id="certFeaturedTitle">Gold Certificate — Exploratory Data Analysis</h3>
+          <p class="cert-featured-issuer" id="certFeaturedIssuer">FutureSkills Prime × NASSCOM</p>
+          <p class="cert-featured-desc" id="certFeaturedDesc">Successfully cleared the Exploratory Data Analysis assessment in the Gold category with a score of 70% and above.</p>
+          <div class="cert-featured-tags" id="certFeaturedTags">
+            <span class="tag">Python</span><span class="tag">Data Analysis</span><span class="tag">Visualization</span>
+          </div>
+          <a class="btn btn-ghost" id="certFeaturedLink" href="{{ url_for('static', filename='images/certificates/gold-certificate.png') }}" target="_blank" rel="noopener" data-cursor-text="View">View Certificate →</a>
+        </div>
+      </div>
+
+      <div class="cert-thumbs">
+        <span class="cert-count"><strong>4</strong> Certificates</span>
+        <div class="cert-thumb-row" id="certThumbRow">
+          <button type="button" class="cert-thumb active" data-index="0"
+            data-title="Gold Certificate — Exploratory Data Analysis"
+            data-issuer="FutureSkills Prime × NASSCOM"
+            data-desc="Successfully cleared the Exploratory Data Analysis assessment in the Gold category with a score of 70% and above."
+            data-tags="Python,Data Analysis,Visualization"
+            data-image="{{ url_for('static', filename='images/certificates/gold-certificate.png') }}">
+            <img src="{{ url_for('static', filename='images/certificates/gold-certificate.png') }}" alt="Gold Certificate thumbnail">
+            <span>Gold Certificate</span>
+          </button>
+          <button type="button" class="cert-thumb" data-index="1"
+            data-title="Exploratory Data Analysis — Course Participation"
+            data-issuer="FutureSkills Prime × NASSCOM"
+            data-desc="Completed a comprehensive course on Exploratory Data Analysis, covering data analysis, visualization and practical applications."
+            data-tags="Python,Data Analysis,Visualization"
+            data-image="{{ url_for('static', filename='images/certificates/course-completion-certificate.png') }}">
+            <img src="{{ url_for('static', filename='images/certificates/course-completion-certificate.png') }}" alt="Course Completion thumbnail">
+            <span>Course Completion</span>
+          </button>
+          <button type="button" class="cert-thumb" data-index="2"
+            data-title="Introduction to Generative AI"
+            data-issuer="Google Cloud, via Simplilearn SkillUp"
+            data-desc="Completed the Introduction to Generative AI course, building a foundational understanding of generative models and their applications."
+            data-tags="Generative AI,Machine Learning"
+            data-image="{{ url_for('static', filename='images/certificates/google-certificate.png') }}">
+            <img src="{{ url_for('static', filename='images/certificates/google-certificate.png') }}" alt="Google Generative AI thumbnail">
+            <span>Generative AI</span>
+          </button>
+          <button type="button" class="cert-thumb" data-index="3"
+            data-title="NEXUS AI Quiz Ignite 2026"
+            data-issuer="Unstop"
+            data-desc="Participated in the NEXUS AI Quiz Ignite 2026, sharpening my knowledge of Artificial Intelligence concepts."
+            data-tags="AI,Problem Solving"
+            data-image="{{ url_for('static', filename='images/certificates/nexus-participation.jpg') }}">
+            <img src="{{ url_for('static', filename='images/certificates/nexus-participation.jpg') }}" alt="NEXUS AI Quiz thumbnail">
+            <span>NEXUS AI Quiz</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,17 @@
+<!-- terminal overlay — opens with Ctrl+K / Cmd+K, or the ⌘K button in the top bar -->
+<div class="term-overlay" id="termOverlay" role="dialog" aria-modal="true" aria-label="Command terminal" hidden>
+  <div class="term-window">
+    <div class="term-titlebar">
+      <span class="term-dot red"></span><span class="term-dot yellow"></span><span class="term-dot green"></span>
+      <span class="term-title">ayushman@portfolio — bash</span>
+      <span class="term-esc">ESC</span>
+    </div>
+    <div class="term-body" id="termBody">
+      <div class="term-line">Welcome. Type <span class="term-cmd-hint">help</span> to get started.</div>
+    </div>
+    <div class="term-input-row">
+      <span class="term-prompt">ayushman@dev:~$</span>
+      <input type="text" id="termInput" class="term-input" autocomplete="off" spellcheck="false" aria-label="Terminal command input">
+    </div>
+  </div>
+</div>
