@@ -1,0 +1,17 @@
+<!-- sections menu — opens with the grid icon in the top bar -->
+<div class="sections-overlay" id="sectionsOverlay" hidden>
+  <div class="sections-panel">
+    <div class="sections-panel-head">
+      <span>Sections</span>
+      <button class="sections-close" id="sectionsClose" aria-label="Close sections menu">✕</button>
+    </div>
+    <ul class="sections-list">
+      <li><a href="{{ url_for('home') }}" data-cursor-text="Open"><span>Home</span><span class="sections-arrow">→</span></a></li>
+      <li><a href="{{ url_for('about') }}" data-cursor-text="Open"><span>About</span><span class="sections-arrow">→</span></a></li>
+      <li><a href="{{ url_for('skills') }}" data-cursor-text="Open"><span>Skills</span><span class="sections-arrow">→</span></a></li>
+      <li><a href="{{ url_for('projects') }}" data-cursor-text="Open"><span>Projects</span><span class="sections-arrow">→</span></a></li>
+      <li><a href="{{ url_for('certificates') }}" data-cursor-text="Open"><span>Certificates</span><span class="sections-arrow">→</span></a></li>
+      <li><a href="{{ url_for('contact') }}" data-cursor-text="Open"><span>Contact</span><span class="sections-arrow">→</span></a></li>
+    </ul>
+  </div>
+</div>

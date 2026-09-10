@@ -1,24 +1,29 @@
 <header class="top-bar">
-  <div class="nav-mark"><span class="dot"></span>Ayushman Singh</div>
+  <div class="nav-mark"><a href="{{ url_for('home') }}" data-cursor-text="Home"><span class="dot"></span>Ayushman Singh</a></div>
   <div class="nav-right">
+    <button class="sections-trigger" id="sectionsTrigger" data-cursor-text="Sections" aria-label="Open sections menu" aria-haspopup="true" aria-expanded="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+    </button>
     <div class="profile-menu" id="profileMenu">
       <button class="profile-avatar" id="profileAvatarBtn" aria-haspopup="true" aria-expanded="false" aria-label="Open profile menu">AS</button>
       <div class="profile-dropdown" id="profileDropdown">
         <div class="profile-dropdown-header">My Profile</div>
 
         <div class="profile-section">
-          <span class="profile-section-label">Theme</span>
-          <div class="theme-options">
-            <button type="button" class="theme-swatch" data-theme="cinematic" aria-label="Dark theme">
-              <span class="swatch-dot swatch-cinematic"></span>Dark
-            </button>
-            <button type="button" class="theme-swatch" data-theme="light" aria-label="Light theme">
-              <span class="swatch-dot swatch-light"></span>Light
-            </button>
-            <button type="button" class="theme-swatch" data-theme="terminal" aria-label="Terminal theme">
-              <span class="swatch-dot swatch-terminal"></span>Terminal
-            </button>
-          </div>
+          <details class="theme-select" id="themeSelect">
+            <summary><span class="profile-section-label">Theme</span><span class="theme-current" id="currentThemeLabel">Dark</span></summary>
+            <div class="theme-options">
+              <button type="button" class="theme-swatch" data-theme="cinematic" aria-label="Dark theme">
+                <span class="swatch-dot swatch-cinematic"></span>Dark
+              </button>
+              <button type="button" class="theme-swatch" data-theme="light" aria-label="Light theme">
+                <span class="swatch-dot swatch-light"></span>Light
+              </button>
+              <button type="button" class="theme-swatch" data-theme="terminal" aria-label="Terminal theme">
+                <span class="swatch-dot swatch-terminal"></span>Terminal
+              </button>
+            </div>
+          </details>
         </div>
 
         <div class="profile-section">

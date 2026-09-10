@@ -1,42 +1,3 @@
-// Bottom nav stays hidden — reveals when scrolling, or when the
-// cursor/touch moves near the bottom edge of the screen.
-const nav = document.getElementById('nav');
-let mouseNearBottom = false;
-let scrollActive = false;
-let navHideTimer = null;
-
-function updateNavVisibility() {
-  nav.classList.toggle('nav-visible', mouseNearBottom || scrollActive);
-}
-
-window.addEventListener('mousemove', e => {
-  mouseNearBottom = (window.innerHeight - e.clientY) < 110;
-  updateNavVisibility();
-});
-
-window.addEventListener('scroll', () => {
-  scrollActive = true;
-  updateNavVisibility();
-  clearTimeout(navHideTimer);
-  navHideTimer = setTimeout(() => {
-    scrollActive = false;
-    updateNavVisibility();
-  }, 1200);
-}, { passive: true });
-
-window.addEventListener('touchstart', e => {
-  mouseNearBottom = (window.innerHeight - e.touches[0].clientY) < 110;
-  updateNavVisibility();
-}, { passive: true });
-
-// Mobile nav toggle
-const navToggle = document.getElementById('navToggle');
-const navLinks = document.getElementById('navLinks');
-navToggle.addEventListener('click', () => navLinks.classList.toggle('open'));
-navLinks.querySelectorAll('a').forEach(a =>
-  a.addEventListener('click', () => navLinks.classList.remove('open'))
-);
-
 // Count-up stats, triggered once when the hero stats come into view
 const counters = document.querySelectorAll('[data-count]');
 let counted = false;
@@ -284,6 +245,10 @@ if (!isTouch) {
   });
 
   // theme switching — 'cinematic' is the default, so it needs no data-theme attribute
+  const themeSelect = document.getElementById('themeSelect');
+  const themeLabel = document.getElementById('currentThemeLabel');
+  const THEME_NAMES = { cinematic: 'Dark', light: 'Light', terminal: 'Terminal' };
+
   function applyTheme(theme) {
     if (theme === 'cinematic') {
       document.documentElement.removeAttribute('data-theme');
@@ -293,6 +258,7 @@ if (!isTouch) {
     themeButtons.forEach(btn => {
       btn.classList.toggle('active', btn.dataset.theme === theme);
     });
+    if (themeLabel) themeLabel.textContent = THEME_NAMES[theme] || 'Dark';
     localStorage.setItem('siteTheme', theme);
   }
 
@@ -300,7 +266,10 @@ if (!isTouch) {
   applyTheme(savedTheme);
 
   themeButtons.forEach(btn => {
-    btn.addEventListener('click', () => applyTheme(btn.dataset.theme));
+    btn.addEventListener('click', () => {
+      applyTheme(btn.dataset.theme);
+      if (themeSelect) themeSelect.removeAttribute('open'); // collapse back to one line
+    });
   });
 
   // volume — read by blip() in the sound-toggle script above
@@ -333,26 +302,30 @@ if (!isTouch) {
   revealEls.forEach(el => obs.observe(el));
 })();
 
-// ---------- Nav: highlight the link for the section currently in view ----------
+// ---------- Sections menu: icon in the top bar opens a page list ----------
 (function () {
-  const sections = document.querySelectorAll('section[id]');
-  const navLinkEls = document.querySelectorAll('.nav-links a[href^="#"]');
-  if (!sections.length || !navLinkEls.length) return;
+  const trigger = document.getElementById('sectionsTrigger');
+  const overlay = document.getElementById('sectionsOverlay');
+  const closeBtn = document.getElementById('sectionsClose');
+  if (!trigger || !overlay) return;
 
-  const linkFor = id => document.querySelector(`.nav-links a[href="#${id}"]`);
+  function open() {
+    overlay.hidden = false;
+    trigger.setAttribute('aria-expanded', 'true');
+  }
+  function close() {
+    overlay.hidden = true;
+    trigger.setAttribute('aria-expanded', 'false');
+  }
 
-  const spy = new IntersectionObserver(
-    entries => entries.forEach(entry => {
-      const link = linkFor(entry.target.id);
-      if (!link) return;
-      if (entry.isIntersecting) {
-        navLinkEls.forEach(a => a.classList.remove('active'));
-        link.classList.add('active');
-      }
-    }),
-    { rootMargin: '-45% 0px -45% 0px' }
-  );
-  sections.forEach(sec => spy.observe(sec));
+  trigger.addEventListener('click', () => {
+    overlay.hidden ? open() : close();
+  });
+  if (closeBtn) closeBtn.addEventListener('click', close);
+  overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && !overlay.hidden) close();
+  });
 })();
 
 // ---------- Terminal overlay: opens with Ctrl+K / Cmd+K, runs real commands ----------
@@ -363,6 +336,18 @@ if (!isTouch) {
   const trigger = document.getElementById('cmdkTrigger');
   const escLabel = document.querySelector('.term-esc');
   if (!overlay || !termBody || !termInput) return;
+
+  const PAGE_ROUTES = {
+    home: '/', about: '/about', skills: '/skills',
+    projects: '/projects', certificates: '/certificates', contact: '/contact'
+  };
+
+  function updateThemeLabel(theme) {
+    const label = document.getElementById('currentThemeLabel');
+    if (!label) return;
+    const names = { cinematic: 'Dark', light: 'Light', terminal: 'Terminal' };
+    label.textContent = names[theme] || 'Dark';
+  }
 
   function setTheme(theme) {
     if (theme === 'dark' || theme === 'cinematic') {
@@ -375,6 +360,7 @@ if (!isTouch) {
     document.querySelectorAll('.theme-swatch').forEach(btn => {
       btn.classList.toggle('active', btn.dataset.theme === theme);
     });
+    updateThemeLabel(theme);
   }
 
   const commands = {
@@ -433,12 +419,11 @@ if (!isTouch) {
 
     if (cmd === 'open' && parts[1]) {
       const target = parts[1].toLowerCase();
-      const el = document.getElementById(target);
-      if (el) {
-        printLine('Scrolling to ' + target + '...');
-        setTimeout(() => { close(); el.scrollIntoView({ behavior: 'smooth' }); }, 400);
+      if (PAGE_ROUTES[target]) {
+        printLine('Opening ' + target + '...');
+        setTimeout(() => { window.location.href = PAGE_ROUTES[target]; }, 300);
       } else {
-        printLine("No section named '" + target + "'", 'term-error');
+        printLine("No page named '" + target + "' — try home, about, skills, projects, certificates or contact", 'term-error');
       }
       return;
     }
