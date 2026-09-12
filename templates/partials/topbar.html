@@ -7,7 +7,24 @@
     <div class="profile-menu" id="profileMenu">
       <button class="profile-avatar" id="profileAvatarBtn" aria-haspopup="true" aria-expanded="false" aria-label="Open profile menu">AS</button>
       <div class="profile-dropdown" id="profileDropdown">
-        <div class="profile-dropdown-header">My Profile</div>
+        <div class="id-card">
+          <div class="id-card-header">
+            <span class="id-card-chip"></span>
+            <span>Developer ID</span>
+          </div>
+          <div class="id-card-photo">
+            <img src="{{ url_for('static', filename='images/profile.jpg') }}" alt="Ayushman Singh">
+          </div>
+          <div class="id-card-name">Ayushman Singh</div>
+          <div class="id-card-role">Full Stack Developer</div>
+          <div class="id-card-skills">HTML • CSS • JS • Python<br>Flask • MySQL</div>
+          <div class="id-card-divider"></div>
+          <div class="id-card-edu">GNIOT • CSE</div>
+          <div class="id-card-actions">
+            <a href="https://github.com/buildwithayushmansingh" target="_blank" rel="noopener" class="id-card-btn" data-cursor-text="Open">GitHub</a>
+            <a href="https://www.linkedin.com/in/ayushman-singh-147434367/" target="_blank" rel="noopener" class="id-card-btn" data-cursor-text="Open">Resume</a>
+          </div>
+        </div>
 
         <div class="profile-section">
           <details class="theme-select" id="themeSelect">
