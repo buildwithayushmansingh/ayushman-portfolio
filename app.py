@@ -8,9 +8,9 @@ SECTIONS = [
     {'slug': 'skills', 'label': 'Skills'},
     {'slug': 'projects', 'label': 'Projects'},
     {'slug': 'certificates', 'label': 'Certificates'},
+    {'slug': 'github', 'label': 'GitHub Activity'},
     {'slug': 'contact', 'label': 'Contact'},
 ]
-
 
 @app.route('/')
 def home():
@@ -38,11 +38,13 @@ def projects():
 def certificates():
     return render_template('section.html', section='certificates', section_label='Certificates', sections=SECTIONS)
 
-
+@app.route('/github')
+def github():
+    return render_template('section.html', section='github', section_label='GitHub Activity', sections=SECTIONS)
 @app.route('/contact')
 def contact():
     return render_template('section.html', section='contact', section_label='Contact', sections=SECTIONS)
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, port=5001)

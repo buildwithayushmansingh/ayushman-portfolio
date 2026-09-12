@@ -483,3 +483,138 @@ if (!isTouch) {
 
   if (trigger) trigger.addEventListener('click', open);
 })();
+
+// ---------- GitHub Activity: live data from GitHub's public API ----------
+(function () {
+  const heatmap = document.getElementById('ghHeatmap');
+  const monthsRow = document.getElementById('ghMonths');
+  const repoGrid = document.getElementById('ghRepoGrid');
+  const reposEl = document.getElementById('ghRepos');
+  const langsEl = document.getElementById('ghLangs');
+  if (!heatmap) return;
+
+  const USERNAME = 'buildwithayushmansingh';
+
+  // GitHub's standard colors for common languages (falls back to a neutral dot)
+  const LANG_COLORS = {
+    JavaScript: '#f1e05a', Python: '#3572A5', HTML: '#e34c26',
+    CSS: '#563d7c', Flask: '#3572A5', Java: '#b07219',
+    TypeScript: '#3178c6', 'Jupyter Notebook': '#DA5B0B'
+  };
+
+  // repo cards + repo count + distinct languages — GitHub's official public REST API
+  fetch(`https://api.github.com/users/${USERNAME}/repos?per_page=100&sort=updated`)
+    .then(res => res.ok ? res.json() : Promise.reject())
+    .then(repos => {
+      if (reposEl) reposEl.textContent = repos.length;
+      const langs = new Set(repos.map(r => r.language).filter(Boolean));
+      if (langsEl) langsEl.textContent = langs.size;
+
+      if (repoGrid) {
+        repoGrid.innerHTML = '';
+        repos.slice(0, 4).forEach(repo => {
+          const card = document.createElement('div');
+          card.className = 'gh-repo-card';
+          const dotColor = LANG_COLORS[repo.language] || 'var(--muted-2)';
+          card.innerHTML = `
+            <div class="gh-repo-top">
+              <a href="${repo.html_url}" target="_blank" rel="noopener" class="gh-repo-name" data-cursor-text="Open">${repo.name}</a>
+              <span class="gh-repo-badge">${repo.private ? 'Private' : 'Public'}</span>
+            </div>
+            ${repo.description ? `<p class="gh-repo-desc">${repo.description}</p>` : ''}
+            ${repo.language ? `<div class="gh-repo-lang"><span class="gh-lang-dot" style="background:${dotColor}"></span>${repo.language}</div>` : ''}
+          `;
+          repoGrid.appendChild(card);
+        });
+        if (!repos.length) repoGrid.innerHTML = '<div class="gh-loading">No public repositories found.</div>';
+      }
+    })
+    .catch(() => {
+      if (reposEl) reposEl.textContent = '—';
+      if (langsEl) langsEl.textContent = '—';
+      if (repoGrid) repoGrid.innerHTML = '<div class="gh-error">Repositories are unavailable right now — <a href="https://github.com/' + USERNAME + '" target="_blank" rel="noopener">view the profile directly</a>.</div>';
+    });
+
+  // contribution calendar — GitHub doesn't expose this without login,
+  // so this uses a well-known public community API instead
+  const tooltip = document.getElementById('ghTooltip');
+  const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+  function showTooltip(e, text) {
+    if (!tooltip) return;
+    tooltip.textContent = text;
+    tooltip.hidden = false;
+    tooltip.style.left = e.clientX + 'px';
+    tooltip.style.top = e.clientY + 'px';
+  }
+  function hideTooltip() {
+    if (tooltip) tooltip.hidden = true;
+  }
+
+  fetch(`https://github-contributions-api.jogruber.de/v4/${USERNAME}?y=last`)
+    .then(res => res.ok ? res.json() : Promise.reject())
+    .then(data => {
+      const all = data.contributions || [];
+      const recent = all.slice(-182);
+      if (!recent.length) return Promise.reject();
+
+      // pad the front so day-of-week rows line up correctly (row 0 = Sunday)
+      const firstDow = new Date(recent[0].date + 'T00:00:00').getDay();
+      const padded = Array(firstDow).fill(null).concat(recent);
+      const weekCount = Math.ceil(padded.length / 7);
+
+      heatmap.innerHTML = '';
+      heatmap.style.gridTemplateColumns = `repeat(${weekCount}, 14px)`;
+
+      padded.forEach(day => {
+        const cell = document.createElement('div');
+        cell.className = 'gh-cell';
+        if (!day) {
+          cell.classList.add('pad');
+        } else {
+          const c = day.count;
+          if (c > 0 && c <= 2) cell.classList.add('l1');
+          else if (c <= 5) cell.classList.add('l2');
+          else if (c <= 9) cell.classList.add('l3');
+          else if (c > 9) cell.classList.add('l4');
+          else cell.classList.add('l0');
+
+          const niceDate = new Date(day.date + 'T00:00:00')
+            .toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+          const text = `${day.count} contribution${day.count === 1 ? '' : 's'} on ${niceDate}`;
+          cell.addEventListener('mouseenter', e => showTooltip(e, text));
+          cell.addEventListener('mousemove', e => showTooltip(e, text));
+          cell.addEventListener('mouseleave', hideTooltip);
+        }
+        heatmap.appendChild(cell);
+      });
+
+      // month labels — one per week-column, aligned via the same column count
+      if (monthsRow) {
+        monthsRow.innerHTML = '';
+        monthsRow.style.gridTemplateColumns = `repeat(${weekCount}, 14px)`;
+        let lastMonth = -1;
+        for (let w = 0; w < weekCount; w++) {
+          let label = '';
+          for (let r = 0; r < 7; r++) {
+            const entry = padded[w * 7 + r];
+            if (entry) {
+              const m = new Date(entry.date + 'T00:00:00').getMonth();
+              if (m !== lastMonth) { label = MONTH_NAMES[m]; lastMonth = m; }
+              break;
+            }
+          }
+          const span = document.createElement('span');
+          span.textContent = label;
+          monthsRow.appendChild(span);
+        }
+      }
+
+      const total = all.reduce((sum, d) => sum + d.count, 0);
+      const heading = document.getElementById('ghContribHeading');
+      if (heading) heading.textContent = `${total} contributions in the last year`;
+    })
+    .catch(() => {
+      heatmap.innerHTML = '<div class="gh-error">Live activity data is unavailable right now — <a href="https://github.com/' + USERNAME + '" target="_blank" rel="noopener">view the profile directly</a>.</div>';
+    });
+})();
