@@ -17,7 +17,12 @@
           </div>
           <div class="id-card-name">Ayushman Singh</div>
           <div class="id-card-role">Full Stack Developer</div>
-          <div class="id-card-skills">HTML • CSS • JS • Python<br>Flask • MySQL</div>
+
+          <div class="id-card-level">LEVEL {{ dev_progress.level }} · {{ dev_progress.title|upper }}</div>
+          <div class="id-card-xp">{{ dev_progress.total_xp }} XP</div>
+          <div class="id-card-bar"><div class="id-card-bar-fill" style="width:{{ dev_progress.progress_percent }}%"></div></div>
+          <div class="id-card-next">{{ dev_progress.xp_to_next }} XP → Level {{ dev_progress.level + 1 }}</div>
+
           <div class="id-card-divider"></div>
           <div class="id-card-edu">GNIOT • CSE</div>
           <div class="id-card-actions">

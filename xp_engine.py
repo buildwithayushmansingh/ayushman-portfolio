@@ -1,0 +1,197 @@
+"""
+Developer XP Engine — single source of truth for XP, level and title.
+
+XP lives in a local SQLite database (data/xp.db). Nothing here is
+editable from the frontend or the client — every number the templates
+show is computed from real, persisted transactions. Re-running the seed
+function is always safe: each seeded event has a fixed external_event_id,
+so it can only ever award XP once.
+"""
+
+import sqlite3
+import os
+from datetime import datetime
+
+DB_PATH = os.path.join(os.path.dirname(__file__), 'data', 'xp.db')
+
+# ---- configurable XP rules — safe to tune, never hardcoded elsewhere ----
+PROJECT_CREATED_XP = 100
+CERTIFICATE_ADDED_XP = 50
+
+# ---- configurable level curve: XP needed to go from level N-1 to level N ----
+def _xp_for_level(n):
+    return 100 + (n - 1) * 40
+
+TITLES = [
+    (1, 4, 'Explorer'),
+    (5, 9, 'Builder'),
+    (10, 19, 'Developer'),
+    (20, 29, 'Full Stack'),
+    (30, 39, 'Engineer'),
+    (40, 49, 'Elite Developer'),
+    (50, 9999, 'Legend'),
+]
+
+
+def _title_for_level(level):
+    for lo, hi, name in TITLES:
+        if lo <= level <= hi:
+            return name
+    return 'Legend'
+
+
+def init_db():
+    os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
+    conn = sqlite3.connect(DB_PATH)
+    conn.execute('''
+        CREATE TABLE IF NOT EXISTS xp_transactions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            source TEXT NOT NULL,
+            activity_type TEXT NOT NULL,
+            description TEXT NOT NULL,
+            xp INTEGER NOT NULL,
+            repository TEXT,
+            project_id TEXT,
+            external_event_id TEXT UNIQUE,
+            timestamp TEXT NOT NULL
+        )
+    ''')
+    # small key-value store — used to remember when GitHub was last polled,
+    # so we don't hit its API on every single page view
+    conn.execute('''
+        CREATE TABLE IF NOT EXISTS github_sync_meta (
+            key TEXT PRIMARY KEY,
+            value TEXT
+        )
+    ''')
+    conn.commit()
+    conn.close()
+
+
+def get_meta(key):
+    conn = sqlite3.connect(DB_PATH)
+    row = conn.execute('SELECT value FROM github_sync_meta WHERE key = ?', (key,)).fetchone()
+    conn.close()
+    return row[0] if row else None
+
+
+def set_meta(key, value):
+    conn = sqlite3.connect(DB_PATH)
+    conn.execute(
+        'INSERT INTO github_sync_meta (key, value) VALUES (?, ?) '
+        'ON CONFLICT(key) DO UPDATE SET value = excluded.value',
+        (key, value)
+    )
+    conn.commit()
+    conn.close()
+
+
+def count_today(activity_type):
+    """How many transactions of this type were already recorded today —
+    used for daily XP caps (e.g. capping how many pushes count per day)."""
+    today = datetime.utcnow().date().isoformat()
+    conn = sqlite3.connect(DB_PATH)
+    row = conn.execute(
+        'SELECT COUNT(*) FROM xp_transactions WHERE activity_type = ? AND timestamp LIKE ?',
+        (activity_type, today + '%')
+    ).fetchone()
+    conn.close()
+    return row[0]
+
+def award_xp(source, activity_type, description, xp, external_event_id=None,
+             repository=None, project_id=None):
+    """Insert one XP transaction. Returns False (no-op) if external_event_id
+    was already recorded — this is the anti-duplicate guard the spec asks for."""
+    conn = sqlite3.connect(DB_PATH)
+    try:
+        conn.execute(
+            '''INSERT INTO xp_transactions
+               (source, activity_type, description, xp, repository, project_id,
+                external_event_id, timestamp)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?)''',
+            (source, activity_type, description, xp, repository, project_id,
+             external_event_id, datetime.utcnow().isoformat())
+        )
+        conn.commit()
+        return True
+    except sqlite3.IntegrityError:
+        return False  # this external_event_id already earned XP once
+    finally:
+        conn.close()
+
+
+def get_total_xp():
+    conn = sqlite3.connect(DB_PATH)
+    row = conn.execute('SELECT COALESCE(SUM(xp), 0) FROM xp_transactions').fetchone()
+    conn.close()
+    return row[0]
+
+
+def get_transactions(limit=50):
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    rows = conn.execute(
+        'SELECT * FROM xp_transactions ORDER BY timestamp DESC LIMIT ?', (limit,)
+    ).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
+def get_progress():
+    """The one function the templates use. Level/title/progress are always
+    derived live from stored XP — there is no separate 'level' field to
+    fall out of sync."""
+    total_xp = get_total_xp()
+
+    level = 0
+    xp_floor = 0
+    while True:
+        needed = _xp_for_level(level + 1)
+        if xp_floor + needed > total_xp:
+            break
+        xp_floor += needed
+        level += 1
+
+    level = max(level, 1)
+    xp_into_level = total_xp - xp_floor
+    xp_for_next = _xp_for_level(level + 1)
+    progress_percent = min(round((xp_into_level / xp_for_next) * 100), 100) if xp_for_next else 100
+
+    return {
+        'total_xp': total_xp,
+        'level': level,
+        'title': _title_for_level(level),
+        'xp_into_level': xp_into_level,
+        'xp_for_next': xp_for_next,
+        'xp_to_next': max(xp_for_next - xp_into_level, 0),
+        'progress_percent': progress_percent,
+    }
+
+
+def seed_initial_xp():
+    """Awards XP for real, already-existing portfolio content — the 4 real
+    projects and 4 real certificates already shown elsewhere on the site.
+    Safe to call on every app start: each event has a fixed ID, so it can
+    only ever be counted once."""
+    real_projects = [
+        ('wattwise', 'WattWise'),
+        ('private-photo-vault', 'Private Photo Vault'),
+        ('genai-project', 'GenAI Project'),
+        ('personal-portfolio', 'Personal Portfolio'),
+    ]
+    for slug, name in real_projects:
+        award_xp(
+            source='portfolio', activity_type='project_created',
+            description=f'Project created: {name}', xp=PROJECT_CREATED_XP,
+            project_id=slug, external_event_id=f'seed_project_created_{slug}'
+        )
+
+    real_certificates = [
+        'gold-eda', 'course-completion-eda', 'google-genai', 'nexus-quiz-ignite'
+    ]
+    for slug in real_certificates:
+        award_xp(
+            source='portfolio', activity_type='certificate_added',
+            description=f'Certificate added: {slug}', xp=CERTIFICATE_ADDED_XP,
+            external_event_id=f'seed_certificate_{slug}'
+        )

@@ -3629,3 +3629,141 @@ footer {
     grid-template-columns: repeat(13, 1fr);
   }
 }
+
+/* ---------- ID CARD: inside the profile dropdown ---------- */
+.profile-dropdown {
+  width: 270px;
+}
+
+.id-card {
+  text-align: center;
+  padding-bottom: 16px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.id-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 14px;
+}
+
+.id-card-chip {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 6px var(--accent);
+}
+
+.id-card-photo {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 12px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid var(--accent);
+  box-shadow: 0 0 0 4px var(--accent-soft);
+}
+
+.id-card-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.id-card-name {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  font-size: 14.5px;
+  letter-spacing: 0.02em;
+  color: var(--text);
+}
+
+.id-card-role {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--accent-2);
+  margin-top: 4px;
+}
+
+.id-card-level {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--text);
+  margin-top: 16px;
+  font-weight: 600;
+}
+
+.id-card-xp {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--accent);
+  margin-top: 2px;
+}
+
+.id-card-bar {
+  height: 6px;
+  border-radius: 100px;
+  background: var(--border);
+  margin-top: 10px;
+  overflow: hidden;
+}
+
+.id-card-bar-fill {
+  height: 100%;
+  border-radius: 100px;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  transition: width 0.4s ease;
+}
+
+.id-card-next {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  color: var(--muted);
+  margin-top: 6px;
+}
+
+.id-card-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 14px 0;
+}
+
+.id-card-edu {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+
+.id-card-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.id-card-btn {
+  flex: 1;
+  text-align: center;
+  padding: 8px 0;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.id-card-btn:hover {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}

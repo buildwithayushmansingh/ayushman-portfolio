@@ -1,6 +1,21 @@
 from flask import Flask, render_template
+import xp_engine
+import github_sync
 
 app = Flask(__name__)
+
+xp_engine.init_db()
+xp_engine.seed_initial_xp()
+
+
+@app.context_processor
+def inject_dev_progress():
+    """Makes {{ dev_progress }} available in every template automatically —
+    real Level/XP/Title computed server-side, never client-editable.
+    Syncs GitHub activity first (this is a no-op most of the time —
+    see SYNC_INTERVAL_SECONDS in github_sync.py)."""
+    github_sync.sync_github_xp()
+    return {'dev_progress': xp_engine.get_progress()}
 
 # label shown in the sections menu / page title for each route
 SECTIONS = [
