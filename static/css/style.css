@@ -3767,3 +3767,15 @@ footer {
   border-color: var(--accent);
   background: var(--accent-soft);
 }
+
+/* ---------- ID CARD: streak + badges row ---------- */
+.id-card-stats {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 10px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--muted);
+  letter-spacing: 0.03em;
+}

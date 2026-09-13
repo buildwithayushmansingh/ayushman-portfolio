@@ -1,21 +1,31 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request
 import xp_engine
 import github_sync
+import achievements
 
 app = Flask(__name__)
 
 xp_engine.init_db()
+achievements.init_db()
 xp_engine.seed_initial_xp()
 
 
 @app.context_processor
 def inject_dev_progress():
-    """Makes {{ dev_progress }} available in every template automatically —
-    real Level/XP/Title computed server-side, never client-editable.
-    Syncs GitHub activity first (this is a no-op most of the time —
-    see SYNC_INTERVAL_SECONDS in github_sync.py)."""
+    """Makes dev_progress / dev_achievements / dev_stats available in every
+    template automatically — all computed server-side from real data, never
+    client-editable. GitHub sync and achievement checks both self-limit
+    (see SYNC_INTERVAL_SECONDS and the unlocked-check), so this is cheap to
+    call on every request."""
     github_sync.sync_github_xp()
-    return {'dev_progress': xp_engine.get_progress()}
+    achievements.check_achievements()
+    return {
+        'dev_progress': xp_engine.get_progress(),
+        'dev_achievements': achievements.get_all_with_status(),
+        'dev_recent_achievements': achievements.get_recent_unlocked(),
+        'dev_stats': achievements.get_summary(),
+        'dev_card_id': xp_engine.get_card_id(),
+    }
 
 # label shown in the sections menu / page title for each route
 SECTIONS = [
@@ -59,6 +69,14 @@ def github():
 @app.route('/contact')
 def contact():
     return render_template('section.html', section='contact', section_label='Contact', sections=SECTIONS)
+
+
+@app.route('/developer')
+def developer():
+    """The full premium Developer ID card page."""
+    share_url = request.host_url.rstrip('/') + '/developer'
+    return render_template('developer.html', sections=SECTIONS,
+                            section_label='Developer ID', share_url=share_url)
 
 
 if __name__ == '__main__':

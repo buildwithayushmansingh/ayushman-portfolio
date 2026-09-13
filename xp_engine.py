@@ -32,13 +32,38 @@ TITLES = [
     (50, 9999, 'Legend'),
 ]
 
-
 def _title_for_level(level):
     for lo, hi, name in TITLES:
         if lo <= level <= hi:
             return name
     return 'Legend'
 
+
+# card visual tiers — a separate scale from titles above, matching the
+# Developer ID card's visual evolution (fewer, broader bands)
+TIERS = [
+    (1, 4, 1, 'Explorer'),
+    (5, 9, 2, 'Builder'),
+    (10, 19, 3, 'Developer'),
+    (20, 29, 4, 'Full Stack'),
+    (30, 39, 5, 'Elite'),
+    (40, 9999, 6, 'Legend'),
+]
+
+
+def _tier_for_level(level):
+    for lo, hi, num, name in TIERS:
+        if lo <= level <= hi:
+            return num, name
+    return 6, 'Legend'
+
+
+def get_card_id():
+    """A stable, unique-looking Developer Card ID, deterministic (never
+    random) so it never changes between requests or restarts."""
+    import hashlib
+    h = hashlib.sha256(b'buildwithayushmansingh-ayushman-singh').hexdigest().upper()
+    return f'DEV-{h[:6]}'
 
 def init_db():
     os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
@@ -157,6 +182,8 @@ def get_progress():
     xp_for_next = _xp_for_level(level + 1)
     progress_percent = min(round((xp_into_level / xp_for_next) * 100), 100) if xp_for_next else 100
 
+    tier_num, tier_name = _tier_for_level(level)
+
     return {
         'total_xp': total_xp,
         'level': level,
@@ -165,8 +192,10 @@ def get_progress():
         'xp_for_next': xp_for_next,
         'xp_to_next': max(xp_for_next - xp_into_level, 0),
         'progress_percent': progress_percent,
+        'tier_num': tier_num,
+        'tier_name': tier_name,
+        'timeline_percent': min(round(level / 50 * 100), 100),
     }
-
 
 def seed_initial_xp():
     """Awards XP for real, already-existing portfolio content — the 4 real
