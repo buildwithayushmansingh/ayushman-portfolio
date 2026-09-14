@@ -170,3 +170,9 @@ def get_recent_unlocked(limit=3):
     conn.close()
     by_id = {a['id']: a for a in ACHIEVEMENTS}
     return [{**by_id[r['id']], 'unlocked_at': r['unlocked_at']} for r in rows if r['id'] in by_id]
+def get_recent_unlocked(limit=5):
+    """Most recently unlocked achievements, newest first — for a
+    'Recent achievements' widget."""
+    unlocked = [a for a in get_all_with_status() if a['unlocked']]
+    unlocked.sort(key=lambda a: a['unlocked_at'] or '', reverse=True)
+    return unlocked[:limit]

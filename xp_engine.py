@@ -32,6 +32,63 @@ TITLES = [
     (50, 9999, 'Legend'),
 ]
 
+# card visual tier — drives which CSS treatment the Developer ID card gets
+TIERS = [
+    (1, 4, 'explorer'),
+    (5, 9, 'builder'),
+    (10, 19, 'developer'),
+    (20, 29, 'fullstack'),
+    (30, 39, 'elite'),
+    (40, 9999, 'legend'),
+]
+
+JOURNEY_CHECKPOINTS = [1, 5, 10, 20, 30, 40, 50]
+
+
+def _tier_for_level(level):
+    for lo, hi, tier in TIERS:
+        if lo <= level <= hi:
+            return tier
+    return 'legend'
+
+
+def _journey_data(level):
+    n = len(JOURNEY_CHECKPOINTS)
+    checkpoints = []
+    for i, cp_level in enumerate(JOURNEY_CHECKPOINTS):
+        checkpoints.append({
+            'level': cp_level,
+            'position': round(i / (n - 1) * 100, 1),
+            'reached': level >= cp_level,
+        })
+    if level <= JOURNEY_CHECKPOINTS[0]:
+        percent = 0.0
+    elif level >= JOURNEY_CHECKPOINTS[-1]:
+        percent = 100.0
+    else:
+        percent = 0.0
+        for i in range(n - 1):
+            lo, hi = JOURNEY_CHECKPOINTS[i], JOURNEY_CHECKPOINTS[i + 1]
+            if lo <= level <= hi:
+                seg = (level - lo) / (hi - lo)
+                base = i / (n - 1) * 100
+                nxt = (i + 1) / (n - 1) * 100
+                percent = base + seg * (nxt - base)
+                break
+    return checkpoints, round(percent, 1)
+
+
+def get_card_id():
+    """A stable, unique card ID — generated once and stored, never
+    regenerated on every request."""
+    existing = get_meta('developer_card_id')
+    if existing:
+        return existing
+    import secrets
+    new_id = 'DEV-' + secrets.token_hex(3).upper()
+    set_meta('developer_card_id', new_id)
+    return new_id
+
 def _title_for_level(level):
     for lo, hi, name in TITLES:
         if lo <= level <= hi:
@@ -184,17 +241,20 @@ def get_progress():
 
     tier_num, tier_name = _tier_for_level(level)
 
+    checkpoints, journey_percent = _journey_data(level)
+
     return {
         'total_xp': total_xp,
         'level': level,
         'title': _title_for_level(level),
+        'tier': _tier_for_level(level),
+        'card_id': get_card_id(),
         'xp_into_level': xp_into_level,
         'xp_for_next': xp_for_next,
         'xp_to_next': max(xp_for_next - xp_into_level, 0),
         'progress_percent': progress_percent,
-        'tier_num': tier_num,
-        'tier_name': tier_name,
-        'timeline_percent': min(round(level / 50 * 100), 100),
+        'journey_percent': journey_percent,
+        'journey_checkpoints': checkpoints,
     }
 
 def seed_initial_xp():

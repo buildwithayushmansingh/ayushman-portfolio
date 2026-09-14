@@ -1,0 +1,96 @@
+<section id="developer-card">
+  <div class="wrap">
+    <div class="section-head reveal-on-scroll">
+      <span class="eyebrow">Developer ID</span>
+      <h2>My progression card</h2>
+      <p>Powered by real XP from this portfolio and GitHub activity — click the card to flip it.</p>
+    </div>
+
+    <div class="dev-card-stage reveal-on-scroll">
+      <div class="dev-card tier-{{ dev_progress.tier }}" id="devCard">
+        <div class="dev-card-inner" id="devCardInner">
+
+          <div class="dev-card-face dev-card-front">
+            {% if dev_progress.tier in ['elite', 'legend'] %}
+              <span class="dev-card-particle p1"></span>
+              <span class="dev-card-particle p2"></span>
+              <span class="dev-card-particle p3"></span>
+            {% endif %}
+            <div class="dev-card-shine"></div>
+
+            <div class="dev-card-header">
+              <span>DEVELOPER ID</span>
+              <span class="dev-card-status">● {{ dev_status }}</span>
+            </div>
+
+            <div class="dev-card-avatar">
+              <img src="{{ url_for('static', filename='images/profile.jpg') }}" alt="Ayushman Singh">
+            </div>
+
+            <div class="dev-card-name">Ayushman Singh</div>
+            <div class="dev-card-handle">@buildwithayushmansingh</div>
+            <div class="dev-card-title">Full Stack Developer</div>
+
+            <div class="dev-card-level-row">
+              <span class="dev-card-level">LEVEL {{ dev_progress.level }}</span>
+              <span class="dev-card-tier-label">{{ dev_progress.title|upper }}</span>
+            </div>
+            <div class="dev-card-xp">{{ dev_progress.total_xp }} XP</div>
+            <div class="dev-card-bar"><div class="dev-card-bar-fill" style="width:{{ dev_progress.progress_percent }}%"></div></div>
+            <div class="dev-card-next">{{ dev_progress.xp_to_next }} XP → Level {{ dev_progress.level + 1 }}</div>
+
+            <div class="dev-card-stats-row">
+              <div><span>🔥</span>{{ dev_stats.streak }} STREAK</div>
+              <div><span>🏆</span>{{ dev_stats.badges }} BADGES</div>
+            </div>
+
+            <div class="dev-card-footer">
+              <span class="dev-card-id">{{ dev_progress.card_id }}</span>
+              <span class="dev-card-flip-hint">Tap to flip ↻</span>
+            </div>
+          </div>
+
+          <div class="dev-card-face dev-card-back">
+            <div class="dev-card-header"><span>DEVELOPER PASSPORT</span></div>
+
+            <div class="dev-card-back-stats">
+              <div><span class="k">Total XP</span><span class="v">{{ dev_progress.total_xp }}</span></div>
+              <div><span class="k">Projects</span><span class="v">4</span></div>
+              <div><span class="k">Streak</span><span class="v">{{ dev_stats.streak }}</span></div>
+              <div><span class="k">Achievements</span><span class="v">{{ dev_stats.badges }}/{{ dev_achievements|length }}</span></div>
+            </div>
+
+            <div class="dev-card-journey">
+              <span class="dev-card-journey-label">Journey</span>
+              <div class="dev-journey-track">
+                <div class="dev-journey-fill" style="width:{{ dev_progress.journey_percent }}%"></div>
+                {% for cp in dev_progress.journey_checkpoints %}
+                  <span class="dev-journey-tick {{ 'reached' if cp.reached else '' }}" style="left:{{ cp.position }}%">
+                    <span class="dev-journey-dot"></span>
+                    <span class="dev-journey-num">{{ cp.level }}</span>
+                  </span>
+                {% endfor %}
+                <span class="dev-journey-marker" style="left:{{ dev_progress.journey_percent }}%"></span>
+              </div>
+            </div>
+
+            <div class="dev-card-recent">
+              <span class="dev-card-journey-label">Recent achievements</span>
+              {% for a in dev_achievements if a.unlocked %}
+                <div class="dev-card-recent-item">{{ a.icon }} {{ a.name }}</div>
+              {% else %}
+                <div class="dev-card-recent-item muted">None yet — keep building.</div>
+              {% endfor %}
+            </div>
+
+            <div class="dev-card-footer">
+              <span class="dev-card-id">{{ dev_progress.card_id }}</span>
+              <span class="dev-card-flip-hint">Tap to flip ↻</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

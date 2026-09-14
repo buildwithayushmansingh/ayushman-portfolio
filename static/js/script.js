@@ -618,3 +618,36 @@ if (!isTouch) {
       heatmap.innerHTML = '<div class="gh-error">Live activity data is unavailable right now — <a href="https://github.com/' + USERNAME + '" target="_blank" rel="noopener">view the profile directly</a>.</div>';
     });
 })();
+// ---------- Developer ID card: 3D tilt + flip ----------
+(function () {
+  const card = document.getElementById('devCard');
+  if (!card) return;
+
+  card.addEventListener('click', () => card.classList.toggle('flipped'));
+
+  const isTouch = window.matchMedia('(pointer: coarse)').matches;
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (isTouch || reduceMotion) return; // tap-to-flip still works — just skip the tilt
+
+  card.addEventListener('mousemove', e => {
+    const rect = card.getBoundingClientRect();
+    const px = (e.clientX - rect.left) / rect.width;   // 0..1
+    const py = (e.clientY - rect.top) / rect.height;
+    const tiltY = (px - 0.5) * 16;  // left/right tilt
+    const tiltX = (0.5 - py) * 16;  // up/down tilt
+    card.style.setProperty('--tilt-x', `${tiltX}deg`);
+    card.style.setProperty('--tilt-y', `${tiltY}deg`);
+    const face = card.classList.contains('flipped')
+      ? card.querySelector('.dev-card-back')
+      : card.querySelector('.dev-card-front');
+    if (face) {
+      face.style.setProperty('--shine-x', `${px * 100}%`);
+      face.style.setProperty('--shine-y', `${py * 100}%`);
+    }
+  });
+
+  card.addEventListener('mouseleave', () => {
+    card.style.setProperty('--tilt-x', '0deg');
+    card.style.setProperty('--tilt-y', '0deg');
+  });
+})();

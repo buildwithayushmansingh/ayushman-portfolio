@@ -71,13 +71,17 @@ def contact():
     return render_template('section.html', section='contact', section_label='Contact', sections=SECTIONS)
 
 
+# real, developer-configurable status shown on the ID card — not automatic
+# real, developer-configurable status shown on the ID card — not automatic
+DEV_STATUS = 'OPEN TO WORK'
+
+
 @app.route('/developer')
 def developer():
     """The full premium Developer ID card page."""
     share_url = request.host_url.rstrip('/') + '/developer'
     return render_template('developer.html', sections=SECTIONS,
-                            section_label='Developer ID', share_url=share_url)
-
-
+                            section_label='Developer ID', dev_status=DEV_STATUS,
+                            share_url=share_url)
 if __name__ == '__main__':
     app.run(debug=True, port=5001)
