@@ -10,7 +10,7 @@ so it can only ever award XP once.
 
 import sqlite3
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 
 DB_PATH = os.path.join(os.path.dirname(__file__), 'data', 'xp.db')
 
@@ -284,3 +284,113 @@ def seed_initial_xp():
             description=f'Certificate added: {slug}', xp=CERTIFICATE_ADDED_XP,
             external_event_id=f'seed_certificate_{slug}'
         )
+        # ---- Activity / XP History (Phase 5) ----
+
+ACTIVITY_DISPLAY = {
+    'project_created': ('🚀', 'Project Created'),
+    'certificate_added': ('🏆', 'Certificate Added'),
+    'github_push': ('🐙', 'GitHub Commit'),
+    'github_pr_opened': ('🔀', 'Pull Request'),
+    'github_issue_opened': ('🐞', 'Issue Opened'),
+    'github_issue_closed': ('✅', 'Issue Closed'),
+    'github_repo_created': ('📦', 'Repository Created'),
+    'achievement_unlocked': ('🏅', 'Achievement Unlocked'),
+}
+
+
+def _display_info(activity_type):
+    return ACTIVITY_DISPLAY.get(activity_type, ('⚡', activity_type.replace('_', ' ').title()))
+
+
+def categorize(activity_type, source):
+    """Which filter bucket a transaction belongs to."""
+    if source == 'achievement':
+        return 'achievements'
+    if source == 'github':
+        return 'github'
+    if activity_type == 'project_created':
+        return 'projects'
+    if activity_type == 'certificate_added':
+        return 'certificates'
+    return 'bonuses'
+
+
+def _format_relative(timestamp_iso):
+    try:
+        dt = datetime.fromisoformat(timestamp_iso)
+    except ValueError:
+        return timestamp_iso
+    now = datetime.utcnow()
+    delta_days = (now.date() - dt.date()).days
+    time_str = dt.strftime('%I:%M %p').lstrip('0')
+    if delta_days <= 0:
+        return f'Today, {time_str}'
+    if delta_days == 1:
+        return f'Yesterday, {time_str}'
+    if delta_days < 7:
+        return f'{delta_days} days ago'
+    return dt.strftime('%b %d, %Y')
+
+
+def get_xp_totals():
+    now = datetime.utcnow()
+    week_cutoff = (now - timedelta(days=7)).isoformat()
+    month_cutoff = (now - timedelta(days=30)).isoformat()
+    year_cutoff = (now - timedelta(days=365)).isoformat()
+
+    conn = sqlite3.connect(DB_PATH)
+
+    def sum_since(cutoff):
+        row = conn.execute(
+            'SELECT COALESCE(SUM(xp),0) FROM xp_transactions WHERE timestamp >= ?', (cutoff,)
+        ).fetchone()
+        return row[0]
+
+    totals = {
+        'total': get_total_xp(),
+        'week': sum_since(week_cutoff),
+        'month': sum_since(month_cutoff),
+        'year': sum_since(year_cutoff),
+    }
+    conn.close()
+    return totals
+
+
+def get_activity_feed(category='all', date_range='all', limit=300):
+    """Real, filtered transaction history — every entry is a stored row,
+    never a fake/backfilled estimate."""
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    rows = conn.execute(
+        'SELECT * FROM xp_transactions ORDER BY timestamp DESC LIMIT ?', (limit,)
+    ).fetchall()
+    conn.close()
+    txns = [dict(r) for r in rows]
+
+    if category != 'all':
+        txns = [t for t in txns if categorize(t['activity_type'], t['source']) == category]
+
+    if date_range != 'all':
+        now = datetime.utcnow()
+        if date_range == 'today':
+            cutoff = now.replace(hour=0, minute=0, second=0, microsecond=0)
+        elif date_range == 'week':
+            cutoff = now - timedelta(days=7)
+        elif date_range == 'month':
+            cutoff = now - timedelta(days=30)
+        else:
+            cutoff = None
+        if cutoff:
+            cutoff_str = cutoff.isoformat()
+            txns = [t for t in txns if t['timestamp'] >= cutoff_str]
+
+    feed = []
+    for t in txns:
+        icon, label = _display_info(t['activity_type'])
+        feed.append({
+            **t,
+            'icon': icon,
+            'label': label,
+            'relative_time': _format_relative(t['timestamp']),
+        })
+    return feed

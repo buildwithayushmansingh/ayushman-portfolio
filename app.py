@@ -83,5 +83,17 @@ def developer():
     return render_template('developer.html', sections=SECTIONS,
                             section_label='Developer ID', dev_status=DEV_STATUS,
                             share_url=share_url)
+
+
+@app.route('/activity')
+def activity():
+    """The XP history / activity ledger — filterable, real data only."""
+    category = request.args.get('category', 'all')
+    date_range = request.args.get('range', 'all')
+    feed = xp_engine.get_activity_feed(category, date_range)
+    totals = xp_engine.get_xp_totals()
+    return render_template('activity.html', sections=SECTIONS,
+                            section_label='Activity', feed=feed, totals=totals,
+                            active_category=category, active_range=date_range)
 if __name__ == '__main__':
     app.run(debug=True, port=5001)

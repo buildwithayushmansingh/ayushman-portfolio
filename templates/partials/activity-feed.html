@@ -1,0 +1,61 @@
+<section id="activity">
+  <div class="wrap">
+    <div class="section-head reveal-on-scroll">
+      <span class="eyebrow">Activity</span>
+      <h2>Where every XP point came from</h2>
+      <p>A complete, real ledger — nothing here is estimated or backfilled.</p>
+    </div>
+
+    <div class="activity-totals reveal-on-scroll">
+      <div class="hud-stat">
+        <div class="stat-num">{{ totals.total }}</div>
+        <div class="stat-label">Total XP</div>
+      </div>
+      <div class="hud-stat">
+        <div class="stat-num">{{ totals.week }}</div>
+        <div class="stat-label">XP this week</div>
+      </div>
+      <div class="hud-stat">
+        <div class="stat-num">{{ totals.month }}</div>
+        <div class="stat-label">XP this month</div>
+      </div>
+      <div class="hud-stat">
+        <div class="stat-num">{{ totals.year }}</div>
+        <div class="stat-label">XP this year</div>
+      </div>
+    </div>
+
+    <div class="activity-filters reveal-on-scroll">
+      <div class="filter-row">
+        {% for key, label in [('all','All'),('github','GitHub'),('projects','Projects'),('certificates','Certificates'),('achievements','Achievements'),('bonuses','Bonuses')] %}
+          <a href="{{ url_for('activity', category=key, range=active_range) }}"
+             class="filter-pill {{ 'active' if active_category == key else '' }}">{{ label }}</a>
+        {% endfor %}
+      </div>
+      <div class="filter-row">
+        {% for key, label in [('today','Today'),('week','Week'),('month','Month'),('all','All time')] %}
+          <a href="{{ url_for('activity', category=active_category, range=key) }}"
+             class="filter-pill {{ 'active' if active_range == key else '' }}">{{ label }}</a>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="activity-feed reveal-on-scroll">
+      {% for item in feed %}
+        <div class="activity-item">
+          <span class="activity-icon">{{ item.icon }}</span>
+          <div class="activity-body">
+            <div class="activity-label">{{ item.label }}</div>
+            <div class="activity-desc">{{ item.description }}</div>
+          </div>
+          <div class="activity-meta">
+            <span class="activity-xp">+{{ item.xp }} XP</span>
+            <span class="activity-time">{{ item.relative_time }}</span>
+          </div>
+        </div>
+      {% else %}
+        <div class="activity-empty">No activity in this range yet.</div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
