@@ -17,9 +17,10 @@ to the browser — it's read server-side only).
 
 import os
 import time
+import json
 import requests
+from datetime import datetime
 import xp_engine
-
 GITHUB_USERNAME = 'buildwithayushmansingh'
 SYNC_INTERVAL_SECONDS = 15 * 60  # don't hit GitHub more often than this
 
@@ -46,7 +47,13 @@ def _fetch_events():
         return []
     return resp.json()
 
-
+def _parse_github_time(iso_str):
+    """GitHub sends UTC times like '2026-09-15T13:45:22Z' — convert to the
+    same naive-UTC format the rest of the ledger already uses."""
+    try:
+        return datetime.strptime(iso_str, '%Y-%m-%dT%H:%M:%SZ').isoformat()
+    except (TypeError, ValueError):
+        return None
 def sync_github_xp(force=False):
     """Awards XP for real GitHub events since the last sync. Safe to call
     on every request — it no-ops unless SYNC_INTERVAL_SECONDS has passed,
@@ -59,51 +66,78 @@ def sync_github_xp(force=False):
     try:
         events = _fetch_events()
     except requests.RequestException:
-        return  # GitHub unreachable right now — try again next interval
+        return
 
     for event in events:
         event_id = event.get('id')
         event_type = event.get('type')
         repo_name = event.get('repo', {}).get('name')
         payload = event.get('payload', {})
+        event_type = event.get('type')
+        repo_name = event.get('repo', {}).get('name')
+        payload = event.get('payload', {})
         if not event_id:
             continue
+
+        real_time = _parse_github_time(event.get('created_at'))
 
         if event_type == 'PushEvent':
             if xp_engine.count_today('github_push') >= DAILY_PUSH_CAP:
                 continue
+            commits = payload.get('commits', [])
+            commit_list = [
+                {
+                    'sha': (c.get('sha') or '')[:7],
+                    'message': (c.get('message') or '').split('\n')[0][:120],
+                    'url': f"https://github.com/{repo_name}/commit/{c.get('sha', '')}"
+                }
+                for c in commits
+            ]
+            detail = json.dumps({'commits': commit_list, 'repo_url': f'https://github.com/{repo_name}'})
             xp_engine.award_xp(
                 source='github', activity_type='github_push',
                 description=f'Push to {repo_name}', xp=PUSH_EVENT_XP,
-                repository=repo_name, external_event_id=f'gh_{event_id}'
+                repository=repo_name, external_event_id=f'gh_{event_id}',
+                timestamp=real_time, detail=detail
             )
 
         elif event_type == 'PullRequestEvent' and payload.get('action') == 'opened':
+            pr = payload.get('pull_request', {})
+            detail = json.dumps({'title': pr.get('title'), 'url': pr.get('html_url')})
             xp_engine.award_xp(
                 source='github', activity_type='github_pr_opened',
                 description=f'Pull request opened in {repo_name}', xp=PR_OPENED_XP,
-                repository=repo_name, external_event_id=f'gh_{event_id}'
+                repository=repo_name, external_event_id=f'gh_{event_id}',
+                timestamp=real_time, detail=detail
             )
 
         elif event_type == 'IssuesEvent' and payload.get('action') == 'opened':
+            issue = payload.get('issue', {})
+            detail = json.dumps({'title': issue.get('title'), 'url': issue.get('html_url')})
             xp_engine.award_xp(
                 source='github', activity_type='github_issue_opened',
                 description=f'Issue opened in {repo_name}', xp=ISSUE_OPENED_XP,
-                repository=repo_name, external_event_id=f'gh_{event_id}'
+                repository=repo_name, external_event_id=f'gh_{event_id}',
+                timestamp=real_time, detail=detail
             )
 
         elif event_type == 'IssuesEvent' and payload.get('action') == 'closed':
+            issue = payload.get('issue', {})
+            detail = json.dumps({'title': issue.get('title'), 'url': issue.get('html_url')})
             xp_engine.award_xp(
                 source='github', activity_type='github_issue_closed',
                 description=f'Issue closed in {repo_name}', xp=ISSUE_CLOSED_XP,
-                repository=repo_name, external_event_id=f'gh_{event_id}'
+                repository=repo_name, external_event_id=f'gh_{event_id}',
+                timestamp=real_time, detail=detail
             )
 
         elif event_type == 'CreateEvent' and payload.get('ref_type') == 'repository':
+            detail = json.dumps({'repo_url': f'https://github.com/{repo_name}'})
             xp_engine.award_xp(
                 source='github', activity_type='github_repo_created',
                 description=f'Repository created: {repo_name}', xp=REPO_CREATED_XP,
-                repository=repo_name, external_event_id=f'gh_{event_id}'
+                repository=repo_name, external_event_id=f'gh_{event_id}',
+                timestamp=real_time, detail=detail
             )
 
     xp_engine.set_meta('github_last_synced', str(now))

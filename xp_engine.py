@@ -10,8 +10,8 @@ so it can only ever award XP once.
 
 import sqlite3
 import os
+import json
 from datetime import datetime, timedelta
-
 DB_PATH = os.path.join(os.path.dirname(__file__), 'data', 'xp.db')
 
 # ---- configurable XP rules — safe to tune, never hardcoded elsewhere ----
@@ -146,9 +146,12 @@ def init_db():
             value TEXT
         )
     ''')
+    # migration: older databases won't have this column yet
+    existing_cols = {row[1] for row in conn.execute('PRAGMA table_info(xp_transactions)')}
+    if 'detail' not in existing_cols:
+        conn.execute('ALTER TABLE xp_transactions ADD COLUMN detail TEXT')
     conn.commit()
     conn.close()
-
 
 def get_meta(key):
     conn = sqlite3.connect(DB_PATH)
@@ -181,18 +184,20 @@ def count_today(activity_type):
     return row[0]
 
 def award_xp(source, activity_type, description, xp, external_event_id=None,
-             repository=None, project_id=None):
+             repository=None, project_id=None, timestamp=None, detail=None):
     """Insert one XP transaction. Returns False (no-op) if external_event_id
-    was already recorded — this is the anti-duplicate guard the spec asks for."""
+    was already recorded — this is the anti-duplicate guard the spec asks for.
+    Pass `timestamp` when the real event happened earlier than right now
+    (e.g. a GitHub push from yesterday) — otherwise it defaults to now."""
     conn = sqlite3.connect(DB_PATH)
     try:
         conn.execute(
             '''INSERT INTO xp_transactions
                (source, activity_type, description, xp, repository, project_id,
-                external_event_id, timestamp)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?)''',
+                external_event_id, timestamp, detail)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)''',
             (source, activity_type, description, xp, repository, project_id,
-             external_event_id, datetime.utcnow().isoformat())
+             external_event_id, timestamp or datetime.utcnow().isoformat(), detail)
         )
         conn.commit()
         return True
@@ -200,7 +205,6 @@ def award_xp(source, activity_type, description, xp, external_event_id=None,
         return False  # this external_event_id already earned XP once
     finally:
         conn.close()
-
 
 def get_total_xp():
     conn = sqlite3.connect(DB_PATH)
@@ -387,10 +391,17 @@ def get_activity_feed(category='all', date_range='all', limit=300):
     feed = []
     for t in txns:
         icon, label = _display_info(t['activity_type'])
+        parsed_detail = None
+        if t.get('detail'):
+            try:
+                parsed_detail = json.loads(t['detail'])
+            except (TypeError, ValueError):
+                parsed_detail = None
         feed.append({
             **t,
             'icon': icon,
             'label': label,
             'relative_time': _format_relative(t['timestamp']),
+            'detail': parsed_detail,
         })
     return feed

@@ -3557,7 +3557,7 @@ footer {
 
 .gh-day.l2,
 .gh-cell.l2 {
-  background: #c9d0c8;
+  background: #006d32;
 }
 
 .gh-day.l3,
@@ -4374,4 +4374,66 @@ footer {
   justify-content: center;
   gap: 14px;
   margin-top: 26px;
+}
+
+/* ---------- ACTIVITY: click-to-expand details ---------- */
+.activity-item {
+  background: var(--surface);
+}
+
+.activity-summary {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 20px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.activity-summary::-webkit-details-marker {
+  display: none;
+}
+
+.activity-summary::after {
+  content: '⌄';
+  color: var(--muted);
+  font-size: 14px;
+  margin-left: auto;
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.activity-item[open] .activity-summary::after {
+  transform: rotate(180deg);
+}
+
+.activity-detail {
+  padding: 0 20px 18px 54px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.activity-detail a {
+  color: var(--accent);
+}
+
+.activity-detail-label {
+  color: var(--text);
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.activity-commit-list {
+  margin: 0;
+  padding-left: 16px;
+}
+
+.activity-commit-list li {
+  margin-bottom: 6px;
+  line-height: 1.5;
+}
+
+.activity-detail-repo {
+  margin-top: 10px;
+  color: var(--text);
 }

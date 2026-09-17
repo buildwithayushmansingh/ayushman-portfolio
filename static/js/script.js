@@ -488,50 +488,22 @@ if (!isTouch) {
 (function () {
   const heatmap = document.getElementById('ghHeatmap');
   const monthsRow = document.getElementById('ghMonths');
-  const repoGrid = document.getElementById('ghRepoGrid');
   const reposEl = document.getElementById('ghRepos');
   const langsEl = document.getElementById('ghLangs');
   if (!heatmap) return;
 
   const USERNAME = 'buildwithayushmansingh';
 
-  // GitHub's standard colors for common languages (falls back to a neutral dot)
-  const LANG_COLORS = {
-    JavaScript: '#f1e05a', Python: '#3572A5', HTML: '#e34c26',
-    CSS: '#563d7c', Flask: '#3572A5', Java: '#b07219',
-    TypeScript: '#3178c6', 'Jupyter Notebook': '#DA5B0B'
-  };
-
-  // repo cards + repo count + distinct languages — GitHub's official public REST API
-  fetch(`https://api.github.com/users/${USERNAME}/repos?per_page=100&sort=updated`)
+  // repo count + distinct languages, for the stats row — GitHub's public REST API
+  fetch(`https://api.github.com/users/${USERNAME}/repos?per_page=100`)
     .then(res => res.ok ? res.json() : Promise.reject())
     .then(repos => {
       if (reposEl) reposEl.textContent = repos.length;
       const langs = new Set(repos.map(r => r.language).filter(Boolean));
       if (langsEl) langsEl.textContent = langs.size;
-
-      if (repoGrid) {
-        repoGrid.innerHTML = '';
-        repos.slice(0, 4).forEach(repo => {
-          const card = document.createElement('div');
-          card.className = 'gh-repo-card';
-          const dotColor = LANG_COLORS[repo.language] || 'var(--muted-2)';
-          card.innerHTML = `
-            <div class="gh-repo-top">
-              <a href="${repo.html_url}" target="_blank" rel="noopener" class="gh-repo-name" data-cursor-text="Open">${repo.name}</a>
-              <span class="gh-repo-badge">${repo.private ? 'Private' : 'Public'}</span>
-            </div>
-            ${repo.description ? `<p class="gh-repo-desc">${repo.description}</p>` : ''}
-            ${repo.language ? `<div class="gh-repo-lang"><span class="gh-lang-dot" style="background:${dotColor}"></span>${repo.language}</div>` : ''}
-          `;
-          repoGrid.appendChild(card);
-        });
-        if (!repos.length) repoGrid.innerHTML = '<div class="gh-loading">No public repositories found.</div>';
-      }
     })
     .catch(() => {
-      if (reposEl) reposEl.textContent = '—';
-      if (langsEl) langsEl.textContent = '—';
+
       if (repoGrid) repoGrid.innerHTML = '<div class="gh-error">Repositories are unavailable right now — <a href="https://github.com/' + USERNAME + '" target="_blank" rel="noopener">view the profile directly</a>.</div>';
     });
 
