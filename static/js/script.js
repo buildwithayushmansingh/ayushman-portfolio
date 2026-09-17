@@ -651,3 +651,63 @@ if (!isTouch) {
     card.style.setProperty('--tilt-y', '0deg');
   });
 })();
+// ---------- Developer ID card: QR code + share + download ----------
+(function () {
+  const card = document.getElementById('devCard');
+  if (!card) return;
+
+  const shareUrl = card.dataset.shareUrl;
+  const qrContainer = document.getElementById('devCardQR');
+  const shareBtn = document.getElementById('shareCardBtn');
+  const downloadBtn = document.getElementById('downloadCardBtn');
+
+  // QR code — generated client-side, points at the public /developer URL
+  if (qrContainer && shareUrl && window.qrcode) {
+    const qr = qrcode(0, 'M');
+    qr.addData(shareUrl);
+    qr.make();
+    qrContainer.innerHTML = qr.createSvgTag({ cellSize: 3, margin: 2 });
+  }
+
+  // Share — native share sheet where available, clipboard copy otherwise
+  if (shareBtn && shareUrl) {
+    shareBtn.addEventListener('click', async () => {
+      if (navigator.share) {
+        try {
+          await navigator.share({ title: 'My Developer ID', url: shareUrl });
+        } catch (e) { /* user cancelled the native share sheet — fine */ }
+      } else {
+        try {
+          await navigator.clipboard.writeText(shareUrl);
+          shareBtn.textContent = 'Link copied!';
+          setTimeout(() => { shareBtn.textContent = 'Share Card'; }, 1800);
+        } catch (e) {
+          window.prompt('Copy this link:', shareUrl);
+        }
+      }
+    });
+  }
+
+  // Download — captures just the card element as a PNG (front face only)
+  if (downloadBtn && window.html2canvas) {
+    downloadBtn.addEventListener('click', async () => {
+      const wasFlipped = card.classList.contains('flipped');
+      card.classList.remove('flipped'); // always export the front face
+      downloadBtn.textContent = 'Preparing…';
+      try {
+        const canvas = await html2canvas(card.querySelector('.dev-card-front'), {
+          backgroundColor: null, useCORS: true, scale: 2
+        });
+        const link = document.createElement('a');
+        link.download = 'developer-id-card.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+      } catch (e) {
+        alert('Could not generate the image right now — please try again.');
+      } finally {
+        downloadBtn.textContent = 'Download Card';
+        if (wasFlipped) card.classList.add('flipped');
+      }
+    });
+  }
+})();

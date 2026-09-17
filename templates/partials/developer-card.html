@@ -7,7 +7,7 @@
     </div>
 
     <div class="dev-card-stage reveal-on-scroll">
-      <div class="dev-card tier-{{ dev_progress.tier }}" id="devCard">
+            <div class="dev-card tier-{{ dev_progress.tier }}" id="devCard" data-share-url="{{ share_url }}">
         <div class="dev-card-inner" id="devCardInner">
 
           <div class="dev-card-face dev-card-front">
@@ -74,13 +74,18 @@
               </div>
             </div>
 
-            <div class="dev-card-recent">
+                        <div class="dev-card-recent">
               <span class="dev-card-journey-label">Recent achievements</span>
               {% for a in dev_achievements if a.unlocked %}
                 <div class="dev-card-recent-item">{{ a.icon }} {{ a.name }}</div>
               {% else %}
                 <div class="dev-card-recent-item muted">None yet — keep building.</div>
               {% endfor %}
+            </div>
+
+            <div class="dev-card-qr-row">
+              <div class="dev-card-qr" id="devCardQR"></div>
+              <span class="dev-card-qr-handle">@buildwithayushmansingh</span>
             </div>
 
             <div class="dev-card-footer">
@@ -90,6 +95,11 @@
           </div>
 
         </div>
+      </div>
+
+      <div class="dev-card-actions">
+        <button type="button" class="btn btn-ghost" id="shareCardBtn" data-cursor-text="Share">Share Card</button>
+        <button type="button" class="btn btn-primary" id="downloadCardBtn" data-cursor-text="Download">Download Card</button>
       </div>
     </div>
   </div>
