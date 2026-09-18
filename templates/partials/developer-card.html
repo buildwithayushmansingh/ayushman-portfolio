@@ -41,7 +41,6 @@
 
             <div class="dev-card-stats-row">
               <div><span>🔥</span>{{ dev_stats.streak }} STREAK</div>
-              <div><span>🏆</span>{{ dev_stats.badges }} BADGES</div>
             </div>
 
             <div class="dev-card-footer">
@@ -57,7 +56,7 @@
               <div><span class="k">Total XP</span><span class="v">{{ dev_progress.total_xp }}</span></div>
               <div><span class="k">Projects</span><span class="v">4</span></div>
               <div><span class="k">Streak</span><span class="v">{{ dev_stats.streak }}</span></div>
-              <div><span class="k">Achievements</span><span class="v">{{ dev_stats.badges }}/{{ dev_achievements|length }}</span></div>
+              <div><span class="k">Active days</span><span class="v">{{ dev_stats.active_days }}</span></div>
             </div>
 
             <div class="dev-card-journey">
@@ -72,15 +71,6 @@
                 {% endfor %}
                 <span class="dev-journey-marker" style="left:{{ dev_progress.journey_percent }}%"></span>
               </div>
-            </div>
-
-                        <div class="dev-card-recent">
-              <span class="dev-card-journey-label">Recent achievements</span>
-              {% for a in dev_achievements if a.unlocked %}
-                <div class="dev-card-recent-item">{{ a.icon }} {{ a.name }}</div>
-              {% else %}
-                <div class="dev-card-recent-item muted">None yet — keep building.</div>
-              {% endfor %}
             </div>
 
             <div class="dev-card-qr-row">

@@ -1,29 +1,23 @@
 from flask import Flask, render_template, request
 import xp_engine
 import github_sync
-import achievements
 
 app = Flask(__name__)
 
 xp_engine.init_db()
-achievements.init_db()
 xp_engine.seed_initial_xp()
 
 
 @app.context_processor
 def inject_dev_progress():
-    """Makes dev_progress / dev_achievements / dev_stats available in every
-    template automatically — all computed server-side from real data, never
-    client-editable. GitHub sync and achievement checks both self-limit
-    (see SYNC_INTERVAL_SECONDS and the unlocked-check), so this is cheap to
-    call on every request."""
+    """Makes dev_progress available in every template automatically — real
+    Level/XP/Title computed server-side, never client-editable. XP only
+    comes from real project/certificate milestones and real GitHub
+    activity — no generic achievement bonuses."""
     github_sync.sync_github_xp()
-    achievements.check_achievements()
     return {
         'dev_progress': xp_engine.get_progress(),
-        'dev_achievements': achievements.get_all_with_status(),
-        'dev_recent_achievements': achievements.get_recent_unlocked(),
-        'dev_stats': achievements.get_summary(),
+        'dev_stats': xp_engine.get_activity_stats(),
         'dev_card_id': xp_engine.get_card_id(),
     }
 
@@ -84,16 +78,5 @@ def developer():
                             section_label='Developer ID', dev_status=DEV_STATUS,
                             share_url=share_url)
 
-
-@app.route('/activity')
-def activity():
-    """The XP history / activity ledger — filterable, real data only."""
-    category = request.args.get('category', 'all')
-    date_range = request.args.get('range', 'all')
-    feed = xp_engine.get_activity_feed(category, date_range)
-    totals = xp_engine.get_xp_totals()
-    return render_template('activity.html', sections=SECTIONS,
-                            section_label='Activity', feed=feed, totals=totals,
-                            active_category=category, active_range=date_range)
 if __name__ == '__main__':
     app.run(debug=True, port=5001)

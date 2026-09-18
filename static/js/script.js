@@ -545,12 +545,11 @@ if (!isTouch) {
           cell.classList.add('pad');
         } else {
           const c = day.count;
-          if (c > 0 && c <= 2) cell.classList.add('l1');
+          if (c === 0) cell.classList.add('l0');
+          else if (c <= 2) cell.classList.add('l1');
           else if (c <= 5) cell.classList.add('l2');
           else if (c <= 9) cell.classList.add('l3');
-          else if (c > 9) cell.classList.add('l4');
-          else cell.classList.add('l0');
-
+          else cell.classList.add('l4');
           const niceDate = new Date(day.date + 'T00:00:00')
             .toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
           const text = `${day.count} contribution${day.count === 1 ? '' : 's'} on ${niceDate}`;

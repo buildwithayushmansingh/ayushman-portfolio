@@ -70,6 +70,9 @@ def _unlocked_ids():
 
 
 def _unlock(achievement):
+    """Records the unlock for badge-count display only — does NOT add
+    any XP. Total XP only ever comes from real projects, certificates
+    and GitHub activity, never from achievement bonuses."""
     conn = sqlite3.connect(xp_engine.DB_PATH)
     try:
         conn.execute(
@@ -81,12 +84,6 @@ def _unlock(achievement):
         conn.close()
         return False  # already unlocked — no-op
     conn.close()
-    xp_engine.award_xp(
-        source='achievement', activity_type='achievement_unlocked',
-        description=f"Achievement unlocked: {achievement['name']}",
-        xp=achievement['xp_reward'],
-        external_event_id=f"achievement_{achievement['id']}"
-    )
     return True
 
 

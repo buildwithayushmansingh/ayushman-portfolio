@@ -27,7 +27,7 @@
 
     <div class="activity-filters reveal-on-scroll">
       <div class="filter-row">
-        {% for key, label in [('all','All'),('github','GitHub'),('projects','Projects'),('certificates','Certificates'),('achievements','Achievements'),('bonuses','Bonuses')] %}
+              {% for key, label in [('all','All'),('github','GitHub'),('projects','Projects'),('certificates','Certificates'),('bonuses','Bonuses')] %}
           <a href="{{ url_for('activity', category=key, range=active_range) }}"
              class="filter-pill {{ 'active' if active_category == key else '' }}">{{ label }}</a>
         {% endfor %}

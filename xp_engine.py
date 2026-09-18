@@ -405,3 +405,22 @@ def get_activity_feed(category='all', date_range='all', limit=300):
             'detail': parsed_detail,
         })
     return feed
+def get_activity_stats():
+    """Streak + total logged days — a real metric from the ledger itself,
+    no achievement system needed."""
+    conn = sqlite3.connect(DB_PATH)
+    rows = conn.execute('SELECT DISTINCT substr(timestamp, 1, 10) as d FROM xp_transactions').fetchall()
+    conn.close()
+    active_dates = sorted({r[0] for r in rows})
+
+    streak = 0
+    if active_dates:
+        date_set = set(active_dates)
+        cursor = datetime.utcnow().date()
+        if cursor.isoformat() not in date_set:
+            cursor -= timedelta(days=1)
+        while cursor.isoformat() in date_set:
+            streak += 1
+            cursor -= timedelta(days=1)
+
+    return {'streak': streak, 'active_days': len(active_dates)}
