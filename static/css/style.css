@@ -1346,16 +1346,16 @@ section {
   height: 17px;
 }
 
-.sound-toggle .icon-off {
+.sound-toggle .icon-on {
   display: none;
 }
 
 .sound-toggle[aria-pressed="true"] .icon-on {
-  display: none;
+  display: block;
 }
 
 .sound-toggle[aria-pressed="true"] .icon-off {
-  display: block;
+  display: none;
 }
 
 .sound-toggle[aria-pressed="true"] {

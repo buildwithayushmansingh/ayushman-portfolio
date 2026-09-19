@@ -178,6 +178,9 @@ if (!isTouch) {
 // ---------- Interface sound ----------
 // Small synthesized blips via Web Audio — no audio files needed.
 // Off by default; the person turns it on with the speaker button.
+// ---------- Interface sound ----------
+// Small synthesized tunes via Web Audio — no audio files needed.
+// Off by default; the person turns it on with the speaker button.
 (function () {
   const toggle = document.getElementById('soundToggle');
   if (!toggle) return;
@@ -190,37 +193,54 @@ if (!isTouch) {
     if (!audioCtx) {
       audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     }
+    if (audioCtx.state === 'suspended') audioCtx.resume();
     return audioCtx;
   }
 
-  function blip(freq, duration, volume) {
+  // plays a short sequence of notes — lets hover/click/confirm each have
+  // their own distinct little tune instead of one flat beep
+  function playTune(frequencies, noteDuration, volume, waveType) {
     if (!soundOn) return;
     const ctx = getCtx();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = 'sine';
-    osc.frequency.value = freq;
-    gain.gain.setValueAtTime(volume * (window.siteVolume ?? 0.6), ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + duration);
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.start();
-    osc.stop(ctx.currentTime + duration);
+    const vol = volume * (window.siteVolume ?? 0.85);
+    frequencies.forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = waveType;
+      osc.frequency.value = freq;
+      const startTime = ctx.currentTime + i * noteDuration * 0.85;
+      gain.gain.setValueAtTime(vol, startTime);
+      gain.gain.exponentialRampToValueAtTime(0.0001, startTime + noteDuration);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(startTime);
+      osc.stop(startTime + noteDuration);
+    });
   }
+
+  function hoverTune() { playTune([660, 880], 0.07, 0.10, 'triangle'); }
+  function clickTune() { playTune([740, 494], 0.09, 0.16, 'sine'); }
+  function onTune() { playTune([523, 659, 784], 0.1, 0.18, 'sine'); } // confirmation when turning sound ON
 
   toggle.addEventListener('click', () => {
     soundOn = !soundOn;
     localStorage.setItem('soundOn', String(soundOn));
     toggle.setAttribute('aria-pressed', String(soundOn));
-    if (soundOn) blip(660, 0.12, 0.05); // confirmation tone when turning on
+    if (soundOn) onTune();
   });
 
-  // subtle hover tick + slightly deeper click tone on interactive elements
+  // distinct hover chime + a louder, different click chime on interactive elements
   document.querySelectorAll('a, button').forEach(el => {
-    el.addEventListener('mouseenter', () => blip(880, 0.05, 0.02));
-    el.addEventListener('click', () => blip(520, 0.08, 0.035));
+    el.addEventListener('mouseenter', hoverTune);
+    el.addEventListener('click', clickTune);
   });
 })();
+// subtle hover tick + slightly deeper click tone on interactive elements
+document.querySelectorAll('a, button').forEach(el => {
+  el.addEventListener('mouseenter', () => blip(880, 0.05, 0.02));
+  el.addEventListener('click', () => blip(520, 0.08, 0.035));
+});
+
 
 // ---------- Profile menu: theme switch + sound + volume ----------
 (function () {
@@ -274,7 +294,7 @@ if (!isTouch) {
 
   // volume — read by blip() in the sound-toggle script above
   const savedVolume = localStorage.getItem('soundVolume');
-  window.siteVolume = savedVolume !== null ? parseInt(savedVolume, 10) / 100 : 0.6;
+  window.siteVolume = savedVolume !== null ? parseInt(savedVolume, 10) / 100 : 0.85;
 
   if (volumeSlider) {
     volumeSlider.value = Math.round(window.siteVolume * 100);
